@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useRef } from 'react';
 import html2canvas from 'html2canvas';
-import { AnalysisResult, Message } from '../types';
+import { Message } from '../types';
 import { analyzeMessages } from '../utils/parser';
 import { 
-  ArrowUpRight, 
   ArrowDownRight, 
   Sun, 
   Moon, 

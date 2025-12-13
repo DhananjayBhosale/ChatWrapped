@@ -6,7 +6,7 @@ import {
   Clock, 
   MessageSquarePlus, 
   Camera, 
-  ChevronRight,
+  ChevronRight, 
   ChevronLeft,
   ArrowRight
 } from 'lucide-react';
@@ -27,7 +27,6 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
   // Constants
   const TOTAL_SLIDES = 9;
   const topUser = data.users[0];
-  const secondUser = data.users[1];
   const isGroup = data.users.length > 2;
 
   // Handlers

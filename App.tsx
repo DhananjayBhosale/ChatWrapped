@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import FileUpload from './components/FileUpload';
 import StoryView from './components/StoryView';
 import ComparisonView from './components/ComparisonView';

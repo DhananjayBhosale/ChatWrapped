@@ -33,7 +33,7 @@ const HourlyHeatmap: React.FC<HourlyHeatmapProps> = ({ data }) => {
             labelFormatter={(h) => `${h}:00 - ${Number(h)+1}:00`}
           />
           <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-            {data.map((entry, index) => (
+            {data.map((_, index) => (
               <Cell 
                 key={`cell-${index}`} 
                 fill={
