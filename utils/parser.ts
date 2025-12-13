@@ -1,8 +1,14 @@
 import { Message, AnalysisResult, UserStat, ParseResult, DailyActivity } from '../types';
 
-// Regex for: dd/mm/yy, HH:MM - Sender: Message
-const MESSAGE_REGEX = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s(.*?):\s(.*)$/;
-const SYSTEM_REGEX = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s(.*?)$/;
+// Regex for Android: dd/mm/yy, HH:MM - Sender: Message
+const ANDROID_MESSAGE_REGEX = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s(.*?):\s(.*)$/;
+const ANDROID_SYSTEM_REGEX = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s(.*?)$/;
+
+// Regex for iOS: [dd/mm/yy, HH:MM:SS AM] Sender: Message
+// Includes support for \u202F (narrow no-break space) often found in iOS exports
+const IOS_MESSAGE_REGEX = /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2}(?::\d{2})?)(?:[\s\u202F]?([APap][Mm]))?\]\s(.*?):\s(.*)$/;
+const IOS_SYSTEM_REGEX = /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2}(?::\d{2})?)(?:[\s\u202F]?([APap][Mm]))?\]\s(.*?)$/;
+
 const EMOJI_REGEX = /\p{Emoji_Presentation}/gu;
 
 // Extended Color Palette for Group Chats
@@ -44,32 +50,65 @@ export const parseChatFile = async (file: File): Promise<ParseResult> => {
         // Fix for Left-to-Right marks
         const cleanLine = line.replace(/[\u200e\u200f]/g, "");
         
-        const match = cleanLine.match(MESSAGE_REGEX);
+        let date: Date | null = null;
+        let sender = '';
+        let content = '';
+        let isSystemMessage = false;
 
-        if (match) {
-          const dateStr = match[1];
-          const timeStr = match[2];
-          const sender = match[3];
-          const content = match[4];
-
-          // System messages check
-          if (content.includes('end-to-end encrypted') || sender === 'WhatsApp') {
-            continue;
-          }
-
-          // Parse Date
+        // Try Android Match
+        const androidMatch = cleanLine.match(ANDROID_MESSAGE_REGEX);
+        if (androidMatch) {
+          const dateStr = androidMatch[1];
+          const timeStr = androidMatch[2];
+          sender = androidMatch[3];
+          content = androidMatch[4];
+          
           const [day, month, yearPart] = dateStr.split('/').map(Number);
           const [hours, minutes] = timeStr.split(':').map(Number);
           const year = yearPart < 100 ? 2000 + yearPart : yearPart;
-          const date = new Date(year, month - 1, day, hours, minutes);
+          date = new Date(year, month - 1, day, hours, minutes);
+        } else {
+          // Try iOS Match
+          const iosMatch = cleanLine.match(IOS_MESSAGE_REGEX);
+          if (iosMatch) {
+            const dateStr = iosMatch[1];
+            const timeStr = iosMatch[2]; // HH:MM:SS or HH:MM
+            const amPm = iosMatch[3];    // AM/PM or undefined
+            sender = iosMatch[4];
+            content = iosMatch[5];
+
+            const [day, month, yearPart] = dateStr.split('/').map(Number);
+            let [hours, minutes] = timeStr.split(':').map(Number);
+            const year = yearPart < 100 ? 2000 + yearPart : yearPart;
+
+            // 12-hour to 24-hour conversion
+            if (amPm) {
+              const isPM = amPm.toUpperCase() === 'PM';
+              if (isPM && hours < 12) hours += 12;
+              if (!isPM && hours === 12) hours = 0;
+            }
+
+            date = new Date(year, month - 1, day, hours, minutes);
+          }
+        }
+
+        if (date && sender && content) {
+          // System messages check (e.g., encryption notice)
+          if (content.includes('end-to-end encrypted') || sender === 'WhatsApp') {
+             continue; // Skip
+          }
 
           const newMessage: Message = { date, sender, content };
           messages.push(newMessage);
           lastMessage = newMessage;
-        } else if (lastMessage) {
-          const systemMatch = cleanLine.match(SYSTEM_REGEX);
-          if (!systemMatch) {
-            lastMessage.content += `\n${cleanLine}`;
+        } else {
+          // If no message match, check if it's a known system message line to skip
+          const isAndroidSystem = ANDROID_SYSTEM_REGEX.test(cleanLine);
+          const isIosSystem = IOS_SYSTEM_REGEX.test(cleanLine);
+          
+          if (!isAndroidSystem && !isIosSystem && lastMessage) {
+             // It's likely a multi-line message continuation
+             lastMessage.content += `\n${cleanLine}`;
           }
         }
       }

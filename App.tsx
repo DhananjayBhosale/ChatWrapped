@@ -4,7 +4,7 @@ import StoryView from './components/StoryView';
 import ComparisonView from './components/ComparisonView';
 import { parseChatFile, analyzeMessages } from './utils/parser';
 import { Message, AnalysisResult } from './types';
-import { ShieldCheck, Github } from 'lucide-react';
+import { ShieldCheck, Github, FileText, Download, FolderOpen } from 'lucide-react';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -76,7 +76,7 @@ function App() {
             </a>
           </nav>
 
-          <main className="flex-1 flex flex-col items-center justify-center relative z-20 pb-20">
+          <main className="flex-1 flex flex-col items-center justify-center relative z-20 pb-20 pt-10">
             <div className="text-center mb-10 max-w-2xl px-6 animate-fadeIn">
               <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
                 Your chat story,<br/> visualized.
@@ -110,7 +110,49 @@ function App() {
                 </div>
               </div>
             </div>
+            
             <FileUpload onFileUpload={handleFileUpload} isLoading={isLoading} />
+
+            {/* How to Export Section */}
+            <div className="mt-16 max-w-4xl px-6 w-full animate-fadeIn delay-700 opacity-0 fill-mode-forwards">
+               <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs text-center mb-8">
+                 How to export your chat
+               </h3>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Step 1 */}
+                  <div className="bg-zinc-900/40 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors">
+                    <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-purple-400">
+                      <Download size={20} />
+                    </div>
+                    <div className="text-white font-bold mb-2">1. Export Chat</div>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      Open WhatsApp Chat &gt; Tap Name/Menu &gt; Export Chat &gt; Select <strong className="text-zinc-300">"Without Media"</strong>.
+                    </p>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="bg-zinc-900/40 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors">
+                    <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-pink-400">
+                      <FolderOpen size={20} />
+                    </div>
+                    <div className="text-white font-bold mb-2">2. Unzip File</div>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      WhatsApp exports a <strong>.zip</strong> file. You must extract/unzip it to get the text file.
+                    </p>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="bg-zinc-900/40 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors">
+                    <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-cyan-400">
+                      <FileText size={20} />
+                    </div>
+                    <div className="text-white font-bold mb-2">3. Upload Text</div>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      Drop the extracted <strong className="text-zinc-300">_chat.txt</strong> file in the box above.
+                    </p>
+                  </div>
+               </div>
+            </div>
           </main>
         </div>
       )}
