@@ -53,7 +53,6 @@ export const parseChatFile = async (file: File): Promise<ParseResult> => {
         let date: Date | null = null;
         let sender = '';
         let content = '';
-        let isSystemMessage = false;
 
         // Try Android Match
         const androidMatch = cleanLine.match(ANDROID_MESSAGE_REGEX);
