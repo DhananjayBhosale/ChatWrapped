@@ -4,6 +4,11 @@ export interface Message {
   content: string;
 }
 
+export interface WordCount {
+  word: string;
+  count: number;
+}
+
 export interface UserStat {
   name: string;
   messageCount: number;
@@ -11,6 +16,14 @@ export interface UserStat {
   avgLength: number;
   emojis: { char: string; count: number }[];
   color: string;
+  // New Stats
+  topWords: WordCount[];
+  avgReplyTimeMinutes: number;
+  morningCount: number; // 4am - 12pm
+  nightCount: number;   // 8pm - 4am
+  byeCount: number;     // "bye", "gn"
+  textMessageCount: number; // Msgs without emojis
+  emojiMessageCount: number; // Msgs with emojis
 }
 
 export interface HourlyActivity {
@@ -21,7 +34,7 @@ export interface HourlyActivity {
 export interface DailyActivity {
   date: string; // YYYY-MM-DD
   count: number;
-  [key: string]: number | string; // Allow dynamic keys for user counts (e.g., "Alice": 10)
+  [key: string]: number | string;
 }
 
 export interface RapidFireStats {
@@ -43,6 +56,9 @@ export interface AnalysisResult {
   hourlyHeatmap: HourlyActivity[];
   yearOptions: number[];
   rapidFire: RapidFireStats;
+  // New Global Stats
+  dayNightSplit: { day: number; night: number }; // Day: 6am-6pm, Night: 6pm-6am
+  wordOccurrences: Record<string, Record<string, number>>; // word -> { UserA: 5, UserB: 2 }
 }
 
 export interface ParseResult {
