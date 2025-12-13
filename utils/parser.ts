@@ -121,6 +121,8 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     byeCount: number;
     textOnlyCount: number;
     emojiMsgCount: number;
+    shortMessageCount: number;
+    longMessageCount: number;
   }>();
 
   const hourlyCounts = new Array(24).fill(0);
@@ -147,7 +149,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
       userMap.set(msg.sender, { 
         count: 0, words: 0, emojis: new Map(), wordFreq: new Map(),
         replyTimes: [], morningCount: 0, nightCount: 0, byeCount: 0,
-        textOnlyCount: 0, emojiMsgCount: 0
+        textOnlyCount: 0, emojiMsgCount: 0, shortMessageCount: 0, longMessageCount: 0
       });
     }
     const uStat = userMap.get(msg.sender)!;
@@ -155,7 +157,12 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     // Basic Stats
     uStat.count++;
     const tokens = msg.content.trim().split(/\s+/);
-    uStat.words += tokens.length;
+    const wordCount = tokens.length;
+    uStat.words += wordCount;
+
+    // Length Classification
+    if (wordCount <= 3) uStat.shortMessageCount++;
+    if (wordCount >= 12) uStat.longMessageCount++;
 
     // Emoji Analysis
     const emojiMatches = msg.content.match(EMOJI_REGEX);
@@ -260,7 +267,9 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
       nightCount: stats.nightCount,
       byeCount: stats.byeCount,
       textMessageCount: stats.textOnlyCount,
-      emojiMessageCount: stats.emojiMsgCount
+      emojiMessageCount: stats.emojiMsgCount,
+      shortMessageCount: stats.shortMessageCount,
+      longMessageCount: stats.longMessageCount
     };
   });
 

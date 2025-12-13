@@ -24,6 +24,8 @@ export interface UserStat {
   byeCount: number;     // "bye", "gn"
   textMessageCount: number; // Msgs without emojis
   emojiMessageCount: number; // Msgs with emojis
+  shortMessageCount: number; // <= 3 words
+  longMessageCount: number;  // >= 12 words
 }
 
 export interface HourlyActivity {

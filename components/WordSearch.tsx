@@ -27,7 +27,7 @@ const WordSearch: React.FC<WordSearchProps> = ({ data, onClose }) => {
     : [];
 
   return (
-    <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col p-6 animate-fadeIn">
+    <div className="absolute inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col p-6 animate-fadeIn">
       <button onClick={onClose} className="absolute top-6 right-6 text-zinc-400 hover:text-white">
         <X size={28} />
       </button>

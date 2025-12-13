@@ -64,6 +64,13 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
     </div>
   );
 
+  const getPersonality = (avgWords: number) => {
+    if (avgWords < 4) return { label: "One-word Texter", color: "text-blue-400" };
+    if (avgWords < 8) return { label: "Quick Replier", color: "text-green-400" };
+    if (avgWords < 15) return { label: "Balanced Texter", color: "text-purple-400" };
+    return { label: "Paragraph Texter", color: "text-orange-400" };
+  };
+
   const renderSlide = () => {
     switch (currentSlide) {
       /* 1. INTRO */
@@ -164,28 +171,70 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
           </div>
         );
 
-      /* 5. TEXT VS EMOJI STYLE */
+      /* 5. TYPING PERSONALITY SPECTRUM (New Design) */
       case 4:
+        const user1 = data.users[0];
+        const user2 = data.users[1] || data.users[0]; // Fallback for safety
+        
+        const personality1 = getPersonality(user1.avgLength);
+        const personality2 = getPersonality(user2.avgLength);
+
+        // If personalities are identical, we force a slight differentiation in the text/vibe
+        const sameCategory = personality1.label === personality2.label;
+        const caption = sameCategory 
+          ? `Both of you are ${personality1.label}s, but ${user1.avgLength > user2.avgLength ? user1.name : user2.name} is slightly more verbose.`
+          : `${user1.name} keeps it ${user1.avgLength < user2.avgLength ? 'brief' : 'detailed'}, while ${user2.name} ${user2.avgLength > user1.avgLength ? 'writes essays' : 'gets to the point'}.`;
+
         return (
-          <div className="flex flex-col justify-center h-full px-6 text-center">
-            <h2 className="text-2xl font-bold uppercase tracking-widest text-zinc-500 mb-8">Typing Style</h2>
-            <div className="flex justify-center gap-8 items-end h-64 mb-8">
-               {data.users.slice(0, 2).map((u, i) => {
-                 const ratio = (u.emojiMessageCount / (u.textMessageCount || 1));
-                 const height = Math.min(Math.max(ratio * 100, 20), 100);
-                 return (
-                   <div key={i} className="flex flex-col items-center gap-2 w-1/3 animate-fadeInUp" style={{ animationDelay: `${i*200}ms` }}>
-                      <div className="text-2xl mb-2">{ratio > 0.5 ? '😂' : '📝'}</div>
-                      <div className="w-full bg-zinc-800 rounded-t-2xl relative" style={{ height: `${height * 2}px` }}>
-                        <div className="absolute bottom-0 w-full rounded-t-2xl bg-gradient-to-t from-purple-500 to-pink-500 opacity-80" style={{ height: '100%' }} />
-                      </div>
-                      <div className="font-bold text-sm truncate w-full">{u.name}</div>
-                      <div className="text-xs text-zinc-500">{ratio > 0.5 ? 'Emoji Lover' : 'Text Purist'}</div>
-                   </div>
-                 );
-               })}
+          <div className="flex flex-col h-full px-6 py-8">
+            <div className="text-center mb-8">
+               <h2 className="text-xl uppercase tracking-widest text-zinc-500 font-bold">Typing Styles</h2>
+               <div className="text-3xl font-black text-white mt-2">The Spectrum</div>
             </div>
-            <p className="text-zinc-300 italic">"Some use words. Others use vibes."</p>
+
+            <div className="flex-1 flex flex-col justify-center gap-6">
+              {[user1, user2].map((u, i) => {
+                const pers = getPersonality(u.avgLength);
+                const pctShort = Math.round((u.shortMessageCount / u.messageCount) * 100);
+                const pctLong = Math.round((u.longMessageCount / u.messageCount) * 100);
+                
+                return (
+                  <div key={i} className="bg-zinc-900/80 rounded-3xl p-6 border border-white/5 animate-slideInRight" style={{ animationDelay: `${i*150}ms` }}>
+                    <div className="flex justify-between items-start mb-2">
+                       <div>
+                          <div className="font-bold text-2xl text-white">{u.name}</div>
+                          <div className={`text-sm font-bold uppercase tracking-wide mt-1 ${pers.color}`}>{pers.label}</div>
+                       </div>
+                       <div className="text-right">
+                          <div className="text-4xl font-black text-zinc-700 opacity-30">{u.avgLength}</div>
+                          <div className="text-[10px] text-zinc-500 uppercase">Avg Words</div>
+                       </div>
+                    </div>
+
+                    {/* Mini Meter */}
+                    <div className="flex items-center gap-2 mt-4 text-xs font-mono text-zinc-400">
+                       <span className={pctShort > 40 ? 'text-white font-bold' : ''}>{pctShort}% Short</span>
+                       <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden flex">
+                          <div className="h-full bg-blue-500" style={{ width: `${pctShort}%` }} />
+                          <div className="h-full bg-zinc-700" style={{ width: `${100 - pctShort - pctLong}%` }} />
+                          <div className="h-full bg-orange-500" style={{ width: `${pctLong}%` }} />
+                       </div>
+                       <span className={pctLong > 10 ? 'text-white font-bold' : ''}>{pctLong}% Long</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="mt-8 text-center px-4">
+               <p className="text-zinc-300 italic text-lg animate-fadeIn delay-500 opacity-0 fill-mode-forwards leading-relaxed">
+                 "{caption}"
+               </p>
+            </div>
+            
+            {/* Background Decor */}
+            <div className="absolute top-1/4 left-0 -translate-x-1/2 text-8xl opacity-5 pointer-events-none select-none">💬</div>
+            <div className="absolute bottom-1/4 right-0 translate-x-1/2 text-8xl opacity-5 pointer-events-none select-none">📝</div>
           </div>
         );
 
@@ -410,9 +459,9 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
                </div>
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 max-w-sm mx-auto w-full animate-fadeInUp delay-500 opacity-0 fill-mode-forwards">
+            <div className="mt-8 flex flex-col gap-3 max-w-sm mx-auto w-full animate-fadeInUp delay-500 opacity-0 fill-mode-forwards relative z-50">
                <button onClick={() => setShowSearch(true)} className="bg-zinc-800 text-white py-4 rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
-                 <Search size={20} /> Search Chat Stats
+                 <Search size={20} /> Search any word in the chat
                </button>
                <button onClick={downloadFinalCard} className="bg-white text-black py-4 rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
                  <Camera size={20} /> Save Image
