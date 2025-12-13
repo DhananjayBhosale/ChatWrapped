@@ -1,4 +1,4 @@
-import { Message, AnalysisResult, UserStat, ParseResult, DailyActivity } from '../types';
+import { Message, AnalysisResult, UserStat, ParseResult, DailyActivity, RapidFireStats } from '../types';
 
 // Regex for: dd/mm/yy, HH:MM - Sender: Message
 const MESSAGE_REGEX = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s(.*?):\s(.*)$/;
@@ -102,7 +102,8 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
       topStarter: '',
       timeline: [],
       hourlyHeatmap: [],
-      yearOptions: []
+      yearOptions: [],
+      rapidFire: { maxInMinute: 0, maxInHour: 0, maxInDay: 0 }
     };
   }
 
@@ -116,9 +117,14 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
   // --- Aggregation Structures ---
   const userMap = new Map<string, { count: number; words: number; emojis: Map<string, number> }>();
   const hourlyCounts = new Array(24).fill(0);
+  
+  // Maps for Rapid Fire
+  const msgsPerMinute = new Map<string, number>(); // Key: YYYY-MM-DD HH:mm
+  const msgsPerHourSpecific = new Map<string, number>(); // Key: YYYY-MM-DD HH
+  const dailyTotalCounts = new Map<string, number>(); // Key: YYYY-MM-DD
+
   // Stacked timeline: Date -> User -> Count
   const dailyBreakdown = new Map<string, Map<string, number>>();
-  const dailyTotalCounts = new Map<string, number>();
 
   const startersMap = new Map<string, number>();
   let lastMsgTime = 0;
@@ -142,15 +148,20 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     uStat.words += msg.content.trim().split(/\s+/).length;
     processEmojis(msg.content, uStat.emojis);
 
-    // Hourly
+    // Hourly Aggregate (0-23)
     const hour = msg.date.getHours();
     hourlyCounts[hour]++;
 
-    // Daily Timeline
-    const dateKey = msg.date.toISOString().split('T')[0];
-    
-    // Total count for date
+    // Time Keys
+    const isoString = msg.date.toISOString();
+    const dateKey = isoString.split('T')[0];
+    const hourKey = isoString.substring(0, 13); // YYYY-MM-DDTHH
+    const minKey = isoString.substring(0, 16); // YYYY-MM-DDTHH:mm
+
+    // Rapid Fire Counts
     dailyTotalCounts.set(dateKey, (dailyTotalCounts.get(dateKey) || 0) + 1);
+    msgsPerHourSpecific.set(hourKey, (msgsPerHourSpecific.get(hourKey) || 0) + 1);
+    msgsPerMinute.set(minKey, (msgsPerMinute.get(minKey) || 0) + 1);
 
     // Breakdown for stacked chart
     if (!dailyBreakdown.has(dateKey)) {
@@ -159,7 +170,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     const dayMap = dailyBreakdown.get(dateKey)!;
     dayMap.set(msg.sender, (dayMap.get(msg.sender) || 0) + 1);
 
-    // Conversation Starter
+    // Conversation Starter (Gap > 6 hours)
     const msgTime = msg.date.getTime();
     if (index === 0 || (msgTime - lastMsgTime > 6 * 60 * 60 * 1000)) {
       startersMap.set(msg.sender, (startersMap.get(msg.sender) || 0) + 1);
@@ -167,8 +178,23 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     lastMsgTime = msgTime;
   });
 
+  // --- Calculate Maxima ---
+  let maxDaily = 0;
+  let activeDate = '';
+  dailyTotalCounts.forEach((count, date) => {
+    if (count > maxDaily) {
+      maxDaily = count;
+      activeDate = date;
+    }
+  });
+
+  let maxInMinute = 0;
+  msgsPerMinute.forEach(c => { if (c > maxInMinute) maxInMinute = c; });
+
+  let maxInHour = 0;
+  msgsPerHourSpecific.forEach(c => { if (c > maxInHour) maxInHour = c; });
+
   // --- Finalize User Stats ---
-  // Sort by message count desc
   const sortedUserNames = Array.from(userMap.keys()).sort((a, b) => userMap.get(b)!.count - userMap.get(a)!.count);
 
   const users: UserStat[] = sortedUserNames.map((name, index) => {
@@ -189,8 +215,6 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
   });
 
   // --- Construct Timeline Data for Stacked Chart ---
-  // We only give distinct layers to the top 5 users to keep the chart readable.
-  // Everyone else goes into "Others".
   const top5Users = new Set(sortedUserNames.slice(0, 5));
   
   const timeline: DailyActivity[] = Array.from(dailyBreakdown.keys()).sort().map(dateKey => {
@@ -232,16 +256,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     prevDateStr = dateStr;
   });
 
-  // --- Busiest Stats ---
-  let maxDaily = 0;
-  let activeDate = '';
-  dailyTotalCounts.forEach((count, date) => {
-    if (count > maxDaily) {
-      maxDaily = count;
-      activeDate = date;
-    }
-  });
-
+  // --- Busiest Hour of Day (Aggregate) ---
   let maxHourly = -1;
   let busyHourIndex = 0;
   hourlyCounts.forEach((count, idx) => {
@@ -274,6 +289,11 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     topStarter,
     timeline,
     hourlyHeatmap: hourlyCounts.map((count, hour) => ({ hour, count })),
-    yearOptions: Array.from(years).sort().reverse()
+    yearOptions: Array.from(years).sort().reverse(),
+    rapidFire: {
+        maxInMinute,
+        maxInHour,
+        maxInDay: maxDaily
+    }
   };
 };

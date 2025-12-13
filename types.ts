@@ -24,6 +24,12 @@ export interface DailyActivity {
   [key: string]: number | string; // Allow dynamic keys for user counts (e.g., "Alice": 10)
 }
 
+export interface RapidFireStats {
+  maxInMinute: number;
+  maxInHour: number;
+  maxInDay: number;
+}
+
 export interface AnalysisResult {
   totalMessages: number;
   dateRange: { start: Date; end: Date };
@@ -36,6 +42,7 @@ export interface AnalysisResult {
   timeline: DailyActivity[];
   hourlyHeatmap: HourlyActivity[];
   yearOptions: number[];
+  rapidFire: RapidFireStats;
 }
 
 export interface ParseResult {
