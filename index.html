@@ -29,6 +29,11 @@
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
       }
+      
+      @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
 
       @keyframes scaleIn {
         from { opacity: 0; transform: scale(0.9); }
@@ -55,24 +60,28 @@
         to { width: var(--target-width); }
       }
 
+      @keyframes flowVertical {
+        0% { transform: translateY(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-100px); opacity: 0; }
+      }
+
       /* 
          CRITICAL FIX: Added 'forwards' to all animation shorthands. 
-         Without this, the 'animation' shorthand resets 'animation-fill-mode' to 'none',
-         causing elements to snap back to opacity: 0 (invisible) after animating.
       */
       .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
       .animate-fadeInUp { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      .animate-fadeInDown { animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       .animate-scaleIn { animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       .animate-slideInUp { animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       .animate-slideInRight { animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       .animate-countUp { animation: countUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       .animate-growWidth { animation: growWidth 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      .animate-bounce-slow { animation: bounce 2s infinite; }
+      .animate-bounce-slow { animation: bounce 3s infinite; }
+      .animate-pulse-slow { animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+      .animate-flow-vertical { animation: flowVertical 20s linear infinite; }
 
-      /* 
-         CRITICAL FIX: Tailwind's 'delay-{n}' classes apply 'transition-delay', not 'animation-delay'.
-         We must manually define animation-delay classes to make the sequencing work.
-      */
       .delay-100 { animation-delay: 100ms; }
       .delay-200 { animation-delay: 200ms; }
       .delay-300 { animation-delay: 300ms; }

@@ -66,7 +66,7 @@ const WordSearch: React.FC<WordSearchProps> = ({ data, onClose }) => {
                </div>
 
                <div className="space-y-4">
-                 {sortedUsers.map(([user, count], index) => {
+                 {sortedUsers.map(([user, count], _) => {
                    // Find user color
                    const userObj = data.users.find(u => u.name === user);
                    const color = userObj?.color || '#a1a1aa';

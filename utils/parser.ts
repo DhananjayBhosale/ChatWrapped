@@ -1,4 +1,4 @@
-import { Message, AnalysisResult, UserStat, ParseResult, DailyActivity } from '../types';
+import { Message, AnalysisResult, UserStat, ParseResult } from '../types';
 
 // Regex for Android: dd/mm/yy, HH:MM - Sender: Message
 const ANDROID_MESSAGE_REGEX = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s(.*?):\s(.*)$/;
@@ -289,7 +289,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
   });
 
   // Calculate One-Sided Days
-  dailyBreakdown.forEach((userCounts, date) => {
+  dailyBreakdown.forEach((userCounts, _date) => {
     const totalDay = Array.from(userCounts.values()).reduce((a, b) => a + b, 0);
     if (totalDay > 10) { // Threshold for significance
       userCounts.forEach((count, user) => {

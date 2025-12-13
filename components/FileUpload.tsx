@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, FileWarning, FileText } from 'lucide-react';
+import { Upload, FileWarning } from 'lucide-react';
 
 interface FileUploadProps {
   onFileUpload: (file: File) => void;
@@ -52,14 +52,15 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, isLoading }) => {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto px-6">
+    <div className="w-full flex flex-col items-center">
       <div 
         className={`
-          relative group cursor-pointer
-          border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300
+          w-full relative group cursor-pointer
+          border border-dashed rounded-[2rem] p-10 text-center transition-all duration-300
+          animate-fadeInUp
           ${isDragging 
-            ? 'border-purple-500 bg-purple-500/10 scale-105' 
-            : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500 hover:bg-zinc-800/50'
+            ? 'border-purple-500 bg-purple-500/10 scale-[1.01]' 
+            : 'border-zinc-700 bg-zinc-900/40 hover:border-zinc-500 hover:bg-zinc-800/40'
           }
         `}
         onDragOver={handleDragOver}
@@ -77,47 +78,45 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, isLoading }) => {
         />
         
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className={`p-4 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 mb-2 ${isLoading ? 'animate-pulse' : ''}`}>
+          <div className={`p-4 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 shadow-lg shadow-purple-500/20 mb-2 transition-transform duration-500 ${isLoading ? 'animate-spin' : 'group-hover:scale-110'}`}>
              {isLoading ? (
-               <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+               <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full" />
              ) : (
-               <Upload className="w-8 h-8 text-white" />
+               <Upload className="w-6 h-6 text-white" />
              )}
           </div>
           
           <div>
-            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
-              {isLoading ? 'Crunching Data...' : 'Drop your chat here'}
+            <h3 className="text-xl md:text-2xl font-bold text-white">
+              {isLoading ? 'Analyzing your chat...' : 'Drop your chat here'}
             </h3>
-            <p className="text-zinc-400 mt-2 text-sm">
-              Upload your <span className="text-purple-400 font-mono">_chat.txt</span> file
+            <p className="text-zinc-400 mt-2 text-sm font-medium">
+              Your story starts instantly. Nothing is uploaded.
             </p>
           </div>
 
           {!isLoading && (
-            <div className="text-xs text-zinc-500 mt-4 max-w-xs mx-auto">
-               Supports standard WhatsApp exports. 
-               <br/> 
-               <span className="text-zinc-600">Strictly local processing. No data leaves your device.</span>
+            <div className="text-xs text-zinc-600 mt-2 max-w-xs mx-auto">
+               Supports WhatsApp <span className="font-mono text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded">_chat.txt</span>
             </div>
           )}
         </div>
       </div>
 
       {error && (
-        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-200 animate-fadeIn">
+        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-200 animate-fadeIn w-full justify-center">
           <FileWarning className="w-5 h-5 shrink-0" />
           <span className="text-sm font-medium">{error}</span>
         </div>
       )}
       
       {!error && !isLoading && (
-        <div className="mt-8 flex justify-center gap-8 opacity-50">
-           <div className="flex flex-col items-center gap-2">
-             <div className="w-12 h-16 bg-zinc-800 rounded-lg border border-zinc-700 flex items-center justify-center">
-               <FileText className="w-6 h-6 text-zinc-600" />
-             </div>
-             <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Drag & Drop</span>
+        <div className="mt-8 text-center animate-fadeIn delay-300 opacity-0 fill-mode-forwards">
+           <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-3">You'll discover</p>
+           <div className="flex flex-wrap justify-center gap-2">
+             <span className="px-3 py-1 bg-zinc-800/30 rounded-full text-[11px] text-zinc-400 border border-zinc-800">🏆 Leaderboard</span>
+             <span className="px-3 py-1 bg-zinc-800/30 rounded-full text-[11px] text-zinc-400 border border-zinc-800">📅 Peak Hours</span>
+             <span className="px-3 py-1 bg-zinc-800/30 rounded-full text-[11px] text-zinc-400 border border-zinc-800">👻 Ghost Mode</span>
            </div>
         </div>
       )}

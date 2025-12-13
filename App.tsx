@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react';
 import FileUpload from './components/FileUpload';
 import StoryView from './components/StoryView';
 import ComparisonView from './components/ComparisonView';
+import FAQ from './components/FAQ';
 import { parseChatFile, analyzeMessages } from './utils/parser';
 import { Message, AnalysisResult } from './types';
-import { ShieldCheck, Github, FileText, Download, FolderOpen } from 'lucide-react';
+import { ShieldCheck, Github, FileText, Download, FolderOpen, Check } from 'lucide-react';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -56,9 +57,18 @@ function App() {
       
       {viewState === 'upload' && (
         <div className="relative z-10 min-h-screen flex flex-col">
-          <div className="fixed inset-0 z-0 pointer-events-none">
-            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 rounded-full blur-[120px]" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 rounded-full blur-[120px]" />
+          {/* Animated Background - Abstract Flow Lines */}
+          <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-purple-900/10 rounded-full blur-[120px] animate-pulse-slow" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[120px] animate-pulse-slow delay-1000" />
+            
+            {/* Vertical Flow Lines */}
+            <div className="absolute inset-0 opacity-[0.03]">
+              <div className="absolute left-[15%] top-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white to-transparent animate-flow-vertical" style={{ animationDuration: '15s', animationDelay: '0s' }}></div>
+              <div className="absolute left-[35%] top-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white to-transparent animate-flow-vertical" style={{ animationDuration: '25s', animationDelay: '5s' }}></div>
+              <div className="absolute left-[65%] top-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white to-transparent animate-flow-vertical" style={{ animationDuration: '20s', animationDelay: '2s' }}></div>
+              <div className="absolute left-[85%] top-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white to-transparent animate-flow-vertical" style={{ animationDuration: '30s', animationDelay: '8s' }}></div>
+            </div>
           </div>
 
           <nav className="p-6 flex justify-between items-center max-w-7xl mx-auto w-full relative z-20">
@@ -76,83 +86,91 @@ function App() {
             </a>
           </nav>
 
-          <main className="flex-1 flex flex-col items-center justify-center relative z-20 pb-20 pt-10">
-            <div className="text-center mb-10 max-w-2xl px-6 animate-fadeIn">
-              <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
-                Your chat story,<br/> visualized.
-              </h1>
-              <p className="text-zinc-400 text-lg md:text-xl mb-8">
-                The "Spotify Wrapped" for your WhatsApp chats.
-              </p>
-
-              <div className="bg-zinc-900/80 border border-green-900/30 rounded-2xl p-6 max-w-lg mx-auto backdrop-blur-sm shadow-xl shadow-green-900/5">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-2 text-green-400 font-bold tracking-wide">
-                    <ShieldCheck size={20} />
-                    <span>PRIVACY FIRST!</span>
+          <main className="flex-1 flex flex-col items-center relative z-20 pt-2 pb-20">
+            
+            {/* 1. Privacy Banner (Top Priority) */}
+            <div className="w-full max-w-2xl px-6 mb-10 animate-fadeInDown">
+               <div className="bg-zinc-900/80 border border-green-500/20 rounded-2xl p-4 shadow-lg shadow-green-900/5 backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2 bg-green-500/10 rounded-full">
+                       <ShieldCheck size={20} className="text-green-400" />
+                     </div>
+                     <div>
+                       <h3 className="text-sm font-bold text-white">Privacy First</h3>
+                       <p className="text-xs text-zinc-400">Your chats never leave your device.</p>
+                     </div>
                   </div>
-                  <p className="text-zinc-300 text-sm font-medium leading-relaxed">
-                    Your data is <span className="text-white font-bold">not uploaded</span> or stored anywhere.<br/>
-                    It is processed locally on <span className="text-white font-bold">YOUR device</span> itself.
-                  </p>
-                  <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-700 to-transparent my-1" />
-                  <p className="text-zinc-500 text-xs flex items-center gap-1">
-                    Code is 
-                    <a 
-                      href="https://github.com/DhananjayBhosale/ChatWrapped" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-zinc-400 hover:text-white underline decoration-zinc-600 underline-offset-2 transition-colors flex items-center gap-1"
-                    >
-                      open source <Github size={10} />
-                    </a>
-                  </p>
-                </div>
-              </div>
+                  
+                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-400 bg-zinc-800/50 px-2 py-1 rounded-full"><Check size={10} className="text-green-500"/> No uploads</div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-400 bg-zinc-800/50 px-2 py-1 rounded-full"><Check size={10} className="text-green-500"/> No accounts</div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-400 bg-zinc-800/50 px-2 py-1 rounded-full"><Check size={10} className="text-green-500"/> Offline only</div>
+                  </div>
+               </div>
             </div>
             
-            <FileUpload onFileUpload={handleFileUpload} isLoading={isLoading} />
+            {/* 2. Headline */}
+            <div className="text-center mb-8 max-w-2xl px-6 animate-fadeIn delay-100">
+              <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-4 leading-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
+                  So… you talked a lot
+                </span>
+                <span className="ml-2">👀</span>
+              </h1>
+              <p className="text-zinc-400 text-lg md:text-xl">
+                This is your "WhatsApp Wrapped 😎"
+              </p>
+            </div>
+            
+            {/* 3. Upload Zone (High Priority) */}
+            <div className="w-full max-w-xl px-6 mb-16 animate-fadeInUp delay-200">
+               <FileUpload onFileUpload={handleFileUpload} isLoading={isLoading} />
+            </div>
 
-            {/* How to Export Section */}
-            <div className="mt-16 max-w-4xl px-6 w-full animate-fadeIn delay-700 opacity-0 fill-mode-forwards">
-               <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs text-center mb-8">
-                 How to export your chat
+            {/* 4. How to Export */}
+            <div className="max-w-4xl px-6 w-full animate-fadeIn delay-300 opacity-0 fill-mode-forwards mb-24">
+               <h3 className="text-zinc-600 font-bold uppercase tracking-widest text-[10px] text-center mb-8">
+                 Three simple steps
                </h3>
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Step 1 */}
-                  <div className="bg-zinc-900/40 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors">
-                    <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-purple-400">
-                      <Download size={20} />
+                  <div className="bg-zinc-900/30 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors group">
+                    <div className="w-10 h-10 bg-zinc-800/80 rounded-full flex items-center justify-center mb-4 text-purple-400 group-hover:scale-110 transition-transform">
+                      <Download size={18} />
                     </div>
-                    <div className="text-white font-bold mb-2">1. Export Chat</div>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      Open any chat &gt; Tap three dots on top &gt; Export chat &gt; Select <strong className="text-zinc-300">"Without Media"</strong>.
+                    <div className="text-white font-bold text-sm mb-1">1. Export Chat</div>
+                    <p className="text-zinc-500 text-xs leading-relaxed">
+                      WhatsApp Settings &gt; Export Chat &gt; <span className="text-zinc-300">"Without Media"</span>.
                     </p>
                   </div>
 
                   {/* Step 2 */}
-                  <div className="bg-zinc-900/40 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors">
-                    <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-pink-400">
-                      <FolderOpen size={20} />
+                  <div className="bg-zinc-900/30 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors group">
+                    <div className="w-10 h-10 bg-zinc-800/80 rounded-full flex items-center justify-center mb-4 text-pink-400 group-hover:scale-110 transition-transform">
+                      <FolderOpen size={18} />
                     </div>
-                    <div className="text-white font-bold mb-2">2. Unzip File</div>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      WhatsApp exports a <strong>.zip</strong> file. You must extract/unzip it to get the text file.
+                    <div className="text-white font-bold text-sm mb-1">2. Unzip File</div>
+                    <p className="text-zinc-500 text-xs leading-relaxed">
+                      If you get a <strong>.zip</strong>, extract it to find the <span className="text-zinc-300">_chat.txt</span> file.
                     </p>
                   </div>
 
                   {/* Step 3 */}
-                  <div className="bg-zinc-900/40 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors">
-                    <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-cyan-400">
-                      <FileText size={20} />
+                  <div className="bg-zinc-900/30 border border-zinc-800/60 p-6 rounded-2xl flex flex-col items-center text-center hover:bg-zinc-900/60 transition-colors group">
+                    <div className="w-10 h-10 bg-zinc-800/80 rounded-full flex items-center justify-center mb-4 text-cyan-400 group-hover:scale-110 transition-transform">
+                      <FileText size={18} />
                     </div>
-                    <div className="text-white font-bold mb-2">3. Upload Text</div>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      Drop the extracted <strong className="text-zinc-300">_chat.txt</strong> file in the box above.
+                    <div className="text-white font-bold text-sm mb-1">3. Drop & View</div>
+                    <p className="text-zinc-500 text-xs leading-relaxed">
+                      Upload the text file above to generate your story instantly.
                     </p>
                   </div>
                </div>
             </div>
+
+            {/* 5. FAQ Section */}
+            <FAQ />
+
           </main>
         </div>
       )}

@@ -3,9 +3,8 @@ import html2canvas from 'html2canvas';
 import { AnalysisResult, UserStat } from '../types';
 import WordSearch from './WordSearch';
 import { 
-  Flame, Clock, MessageSquarePlus, Camera, ChevronRight, ChevronLeft, 
-  Search, Zap, Moon, Sun, MessageCircle, CalendarDays, AlignLeft, 
-  Repeat, User, Mic
+  MessageSquarePlus, Camera, ChevronRight, ChevronLeft, 
+  Search, Zap, Moon, Sun, MessageCircle, AlignLeft
 } from 'lucide-react';
 
 interface StoryViewProps {
@@ -437,8 +436,6 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
       case 13:
         const user1 = data.users[0];
         const user2 = data.users[1] || data.users[0]; 
-        const pers1 = getPersonality(user1.avgLength);
-        const pers2 = getPersonality(user2.avgLength);
 
         return (
           <div className="flex flex-col justify-center h-full px-6">
