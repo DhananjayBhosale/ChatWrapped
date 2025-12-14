@@ -58,6 +58,22 @@
         90% { transform: translate(10%, 5%); }
       }
 
+      /* Missing Animations Restore */
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+      @keyframes growWidth { from { width: 0; } to { width: 100%; } }
+      @keyframes progress { from { width: 0; } to { width: 100%; } }
+      @keyframes flow-vertical { 
+        0% { transform: translateY(-50px); opacity: 0; } 
+        20% { opacity: 0.5; }
+        80% { opacity: 0.5; }
+        100% { transform: translateY(100vh); opacity: 0; } 
+      }
+      @keyframes pulse-slow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+      @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
       /* Utilities */
       .fill-mode-forwards { animation-fill-mode: forwards; }
       
@@ -68,6 +84,17 @@
       .animate-blob-slow { animation: slowDrift 20s infinite alternate ease-in-out; }
       .animate-blob-slower { animation: slowDrift 30s infinite alternate-reverse ease-in-out; }
       .animate-breathe { animation: slowBreathe 8s infinite ease-in-out; }
+
+      /* Standard Animation Utilities */
+      .animate-fadeIn { animation: fadeIn 0.8s ease-out forwards; }
+      .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+      .animate-fadeInDown { animation: fadeInDown 0.8s ease-out forwards; }
+      .animate-scaleIn { animation: scaleIn 0.5s ease-out forwards; }
+      .animate-growWidth { animation: growWidth 1s ease-out forwards; }
+      .animate-progress { animation: progress 4s linear forwards; }
+      .animate-flow-vertical { animation: flow-vertical linear infinite; }
+      .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+      .animate-bounce-slow { animation: bounce-slow 2s infinite; }
 
       .delay-100 { animation-delay: 100ms; }
       .delay-200 { animation-delay: 200ms; }

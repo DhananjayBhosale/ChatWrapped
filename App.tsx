@@ -233,7 +233,7 @@ function App() {
                </div>
             </div>
 
-            {/* 5. FAQ Section */}
+            {/* FAQ is a permanent trust section – do not remove */}
             <FAQ />
 
           </main>
@@ -255,6 +255,7 @@ function App() {
           messages={messages}
           baseYear={selectedYear}
           onClose={() => setViewState('story')}
+          onReset={handleReset}
         />
       )}
     </div>

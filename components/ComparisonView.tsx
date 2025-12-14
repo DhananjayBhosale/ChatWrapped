@@ -1,5 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
-import html2canvas from 'html2canvas';
+import React, { useState, useMemo } from 'react';
 import { Message } from '../types';
 import { analyzeMessages } from '../utils/parser';
 import { 
@@ -7,25 +6,25 @@ import {
   Sun, 
   Moon, 
   Flame, 
-  Camera, 
   ChevronLeft, 
   ChevronRight,
   TrendingUp,
-  X
+  X,
+  RefreshCcw
 } from 'lucide-react';
 
 interface ComparisonViewProps {
   messages: Message[];
   baseYear: number;
   onClose: () => void;
+  onReset: () => void;
 }
 
-const ComparisonView: React.FC<ComparisonViewProps> = ({ messages, baseYear, onClose }) => {
+const ComparisonView: React.FC<ComparisonViewProps> = ({ messages, baseYear, onClose, onReset }) => {
   // 1. Selection State vs Story State
   const [targetYear, setTargetYear] = useState<number | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [animKey, setAnimKey] = useState(0);
-  const finalRef = useRef<HTMLDivElement>(null);
 
   // Available years (excluding base year)
   const availableYears = useMemo(() => {
@@ -50,17 +49,6 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ messages, baseYear, onC
       setCurrentSlide(c => c - 1);
       setAnimKey(k => k + 1);
     }
-  };
-
-  const downloadCard = async () => {
-    if (!finalRef.current) return;
-    try {
-      const canvas = await html2canvas(finalRef.current, { backgroundColor: '#09090b', scale: 2 });
-      const link = document.createElement('a');
-      link.download = `chat-compare-${baseYear}-vs-${targetYear}.png`;
-      link.href = canvas.toDataURL();
-      link.click();
-    } catch (e) { console.error(e); }
   };
 
   // Helper to determine day/night vibe
@@ -150,8 +138,8 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ messages, baseYear, onC
              <h2 className="text-2xl font-bold uppercase tracking-widest text-zinc-500 mb-12 text-center">Peak Hour Shift</h2>
 
              <div className="space-y-8">
-               {/* Old Year */}
-               <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 flex items-center justify-between opacity-60">
+               {/* Old Year - Removed Card */}
+               <div className="flex items-center justify-between opacity-60 px-4">
                   <div>
                     <div className="text-sm text-zinc-500 font-bold mb-1">{targetYear}</div>
                     <div className="text-4xl font-black">{formatTime(targetData.busiestHour)}</div>
@@ -164,8 +152,9 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ messages, baseYear, onC
                  <ArrowDownRight size={32} />
                </div>
 
-               {/* New Year */}
-               <div className="bg-gradient-to-r from-zinc-800 to-zinc-900 p-6 rounded-2xl border border-white/10 flex items-center justify-between animate-fadeInUp">
+               {/* New Year - Removed Card */}
+               <div className="flex items-center justify-between animate-fadeInUp px-4 relative">
+                  <div className="absolute inset-0 bg-white/5 blur-xl -z-10 rounded-full"></div>
                   <div>
                     <div className="text-sm text-purple-400 font-bold mb-1">{baseYear}</div>
                     <div className="text-5xl font-black text-white">{formatTime(baseData.busiestHour)}</div>
@@ -225,17 +214,17 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ messages, baseYear, onC
           <div className="flex flex-col justify-center h-full px-8">
              <h2 className="text-2xl font-bold uppercase tracking-widest text-zinc-500 mb-12 text-center">Main Character Energy</h2>
 
-             <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 text-center animate-fadeInUp">
+             <div className="text-center animate-fadeInUp"> {/* Removed Card Wrapper */}
                <div className="text-xl font-bold text-white mb-2">{topUserBase.name}</div>
-               <div className="text-zinc-500 text-sm mb-6">Chat Dominance</div>
+               <div className="text-zinc-500 text-sm mb-8">Chat Dominance</div>
 
-               <div className="flex justify-center items-end gap-6 mb-4">
-                 <div className="text-zinc-500 text-2xl font-bold">{pctTarget.toFixed(0)}%</div>
+               <div className="flex justify-center items-end gap-6 mb-8">
+                 <div className="text-zinc-500 text-3xl font-bold">{pctTarget.toFixed(0)}%</div>
                  <div className="text-zinc-700 pb-2">➜</div>
-                 <div className="text-white text-6xl font-black">{pctBase.toFixed(0)}%</div>
+                 <div className="text-white text-7xl font-black">{pctBase.toFixed(0)}%</div>
                </div>
 
-               <div className={`inline-block px-4 py-1 rounded-full text-sm font-bold ${delta > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+               <div className={`inline-block px-4 py-1 rounded-full text-sm font-bold ${delta > 0 ? 'text-green-400' : 'text-red-400'}`}>
                  {delta > 0 ? '+' : ''}{delta.toFixed(1)}% Change
                </div>
              </div>
@@ -249,11 +238,11 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ messages, baseYear, onC
       // 5. SUMMARY
       case 4:
         return (
-          <div className="flex flex-col h-full pt-8 pb-12 px-6">
-            <h2 className="text-center text-xl font-bold mb-6 text-zinc-400">Comparison Wrapped</h2>
+          <div className="flex flex-col h-full pt-8 pb-12 px-6 overflow-y-auto scrollbar-hide">
+            <h2 className="text-center text-lg font-bold mb-6 animate-fadeSlideUp text-zinc-400">Comparison Wrapped</h2>
             
             {/* Capture Target */}
-            <div ref={finalRef} className="relative bg-zinc-900 border border-zinc-800 p-6 rounded-[2rem] shadow-2xl overflow-hidden aspect-[9/16] mx-auto w-full max-w-sm flex flex-col justify-center gap-6 animate-scaleIn">
+            <div className="relative bg-zinc-900 border border-zinc-800 p-6 rounded-[2rem] shadow-2xl overflow-hidden aspect-[9/16] mx-auto w-full max-w-sm flex flex-col justify-center gap-6 animate-scaleIn">
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500" />
               
               <div className="text-center">
@@ -287,16 +276,15 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ messages, baseYear, onC
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col gap-3">
-              <button 
-                onClick={downloadCard}
-                className="bg-white text-black py-4 rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
-              >
-                <Camera size={20}/> Save Comparison
-              </button>
-              <button onClick={onClose} className="text-zinc-500 py-2 hover:text-white">
-                Back to Story
-              </button>
+            <div className="mt-8 flex flex-col gap-3 max-w-sm mx-auto w-full animate-fadeInUp delay-500 opacity-0 fill-mode-forwards relative z-50">
+               <button onClick={() => { setTargetYear(null); setCurrentSlide(0); }} className="bg-zinc-800 text-white py-4 rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg">
+                 <RefreshCcw size={20} /> Compare Another Year
+               </button>
+               
+               <div className="flex justify-center gap-6 mt-4">
+                 <button onClick={onClose} className="text-zinc-400 text-xs font-bold hover:text-white uppercase tracking-wider">Back to Story</button>
+                 <button onClick={onReset} className="text-zinc-400 text-xs font-bold hover:text-white uppercase tracking-wider">Start Over</button>
+               </div>
             </div>
           </div>
         );

@@ -46,7 +46,7 @@ const FAQ: React.FC = () => {
       a: "No. There is no backend processing at all. Once the page loads, you can even turn off your internet and it will still work."
     },
     {
-      q: "How does it work offline?",
+      q: "How does this work offline?",
       a: "The chat file is read and analyzed locally using JavaScript. Nothing leaves your device — the app simply reads the file you provide and generates stats in your browser."
     },
     {
@@ -72,7 +72,7 @@ const FAQ: React.FC = () => {
   ];
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-24 px-6 mb-12 animate-fadeIn delay-1000 opacity-0 fill-mode-forwards">
+    <div className="w-full max-w-2xl mx-auto mt-24 px-6 mb-12 animate-fadeIn delay-500 opacity-0 fill-mode-forwards">
       <div className="text-center mb-8">
         <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-2">
           Still curious? Here’s how everything stays private.

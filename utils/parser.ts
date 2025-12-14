@@ -1,32 +1,135 @@
 import { Message, AnalysisResult, UserStat, ParseResult } from '../types';
 
-// Regex for Android: dd/mm/yy, HH:MM - Sender: Message
-const ANDROID_MESSAGE_REGEX = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s(.*?):\s(.*)$/;
-const ANDROID_SYSTEM_REGEX = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s(.*?)$/;
+// -----------------------------------------------------------------------------
+// CONSTANTS & REGEX
+// -----------------------------------------------------------------------------
 
-// Regex for iOS: [dd/mm/yy, HH:MM:SS AM] Sender: Message
-const IOS_MESSAGE_REGEX = /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2}(?::\d{2})?)(?:[\s\u202F]?([APap][Mm]))?\]\s(.*?):\s(.*)$/;
-const IOS_SYSTEM_REGEX = /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2}(?::\d{2})?)(?:[\s\u202F]?([APap][Mm]))?\]\s(.*?)$/;
+// Regex to identify if a line *starts* with a timestamp.
+// Supports:
+// - DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
+// - 12hr and 24hr times
+// - Separators: / . -
+// - Brackets [] (iOS) or " - " (Android)
+// - Optional seconds
+// - Optional AM/PM case insensitive
+// 
+// Capture Groups:
+// 1. Date
+// 2. Time
+const TIMESTAMP_PATTERN = /^\[?(\d{1,4}[-./]\d{1,2}[-./]\d{2,4})[,.]?\s+(\d{1,2}[:.]\d{2}(?:[:.]\d{2})?(?:\s?[a-zA-Z]{1,2})?)\]?(?:\s-\s)?/;
 
+// Emoji Regex for stats
+// Note: \p{Emoji_Presentation} is ES2018. If this fails in older browsers, we might need a polyfill or range.
+// Keeping it for now as the error was specific to \p{Han}.
 const EMOJI_REGEX = /\p{Emoji_Presentation}/gu;
 
-// Common Stop Words to filter out
+// Common Stop Words (English default, can be expanded but kept minimal for performance)
 const STOP_WORDS = new Set([
   'the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us', 'is', 'are', 'was', 'were', 'has', 'had', 'been', 'ok', 'okay', 'lol', 'haha', 'haha', 'yeah', 'yes', 'hey', 'hi', 'hello', 'omg', 'did', 'done', 'too', 'very', 'much', 'really', 'got', 'don', 'dont', 'didnt', 'can', 'cant', 'cannot', 'pm', 'am', 'omitted'
 ]);
 
-// Media phrases to detect and filter
-const MEDIA_PHRASES = [
+// Basic Media Phrases (English/Generic) + Angle Bracket Check in Logic
+const MEDIA_PHRASES_BASE = [
   'image omitted', 'video omitted', 'audio omitted', 'sticker omitted', 
   'gif omitted', 'media omitted', 'contact card omitted', 'document omitted',
-  '<media omitted>'
+  'null'
 ];
 
-// Extended Color Palette
+// Colors for users
 const COLORS = [
   '#8b5cf6', '#ec4899', '#06b6d4', '#f59e0b', '#10b981', '#f43f5e', 
   '#3b82f6', '#a855f7', '#eab308', '#14b8a6', '#6366f1', '#ef4444'
 ];
+
+// -----------------------------------------------------------------------------
+// HELPER FUNCTIONS
+// -----------------------------------------------------------------------------
+
+/**
+ * Normalizes date string to a JS Date object.
+ * Attempts to infer DD/MM vs MM/DD based on values > 12.
+ * Defaults to DD/MM/YYYY (World) if ambiguous, unless navigator says US.
+ */
+const parseDate = (dateStr: string, timeStr: string, dateFormat: 'DMY' | 'MDY' | 'YMD'): Date | null => {
+  try {
+    let day: number, month: number, year: number;
+    
+    // Normalize separators to slash
+    const parts = dateStr.replace(/[-.]/g, '/').split('/').map(Number);
+    
+    if (dateFormat === 'YMD') {
+      [year, month, day] = parts;
+    } else if (dateFormat === 'MDY') {
+      [month, day, year] = parts;
+    } else {
+      [day, month, year] = parts;
+    }
+
+    // Handle 2-digit years (assume 20xx)
+    if (year < 100) year += 2000;
+
+    // Parse Time
+    // Handle "10.30" vs "10:30"
+    const timeParts = timeStr.replace('.', ':').split(/[:\s]/);
+    let hours = Number(timeParts[0]);
+    const minutes = Number(timeParts[1]);
+    
+    // Handle AM/PM
+    const lowerTime = timeStr.toLowerCase();
+    const isPM = lowerTime.includes('pm') || lowerTime.includes('p.m');
+    const isAM = lowerTime.includes('am') || lowerTime.includes('a.m');
+
+    if (isPM && hours < 12) hours += 12;
+    if (isAM && hours === 12) hours = 0;
+
+    const date = new Date(year, month - 1, day, hours, minutes);
+    return isNaN(date.getTime()) ? null : date;
+
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * Scans a sample of lines to detect the date format (DD/MM vs MM/DD).
+ */
+const detectDateFormat = (lines: string[]): 'DMY' | 'MDY' | 'YMD' => {
+  let maxFirst = 0;
+  let maxSecond = 0;
+  let isYMD = false;
+
+  for (const line of lines.slice(0, 50)) { // Scan first 50 lines
+    const match = line.match(TIMESTAMP_PATTERN);
+    if (match) {
+      const datePart = match[1];
+      const parts = datePart.split(/[-./]/).map(Number);
+      
+      if (parts[0] > 1000) {
+         isYMD = true; 
+         break;
+      }
+
+      if (parts[0] > maxFirst) maxFirst = parts[0];
+      if (parts[1] > maxSecond) maxSecond = parts[1];
+    }
+  }
+
+  if (isYMD) return 'YMD';
+  
+  // If first part > 12, it MUST be days -> DMY
+  if (maxFirst > 12) return 'DMY';
+  
+  // If second part > 12, it MUST be days -> MDY
+  if (maxSecond > 12) return 'MDY';
+
+  // If ambiguous (both <= 12), use navigator locale or default to DMY (global standard)
+  const userLocale = navigator.language || 'en-GB';
+  return userLocale.startsWith('en-US') ? 'MDY' : 'DMY';
+};
+
+// -----------------------------------------------------------------------------
+// MAIN PARSER
+// -----------------------------------------------------------------------------
 
 export const parseChatFile = async (file: File): Promise<ParseResult> => {
   return new Promise((resolve) => {
@@ -39,54 +142,63 @@ export const parseChatFile = async (file: File): Promise<ParseResult> => {
         return;
       }
 
-      const lines = text.split(/\r?\n/);
+      // Remove LTR/RTL marks and split
+      const cleanText = text.replace(/[\u200e\u200f]/g, "");
+      const lines = cleanText.split(/\r?\n/);
+
       const messages: Message[] = [];
+      const dateFormat = detectDateFormat(lines);
+      
       let lastMessage: Message | null = null;
 
       for (const line of lines) {
-        const cleanLine = line.replace(/[\u200e\u200f]/g, "");
-        
-        let date: Date | null = null;
-        let sender = '';
-        let content = '';
+        const match = line.match(TIMESTAMP_PATTERN);
 
-        const androidMatch = cleanLine.match(ANDROID_MESSAGE_REGEX);
-        if (androidMatch) {
-          const [day, month, yearPart] = androidMatch[1].split('/').map(Number);
-          const [hours, minutes] = androidMatch[2].split(':').map(Number);
-          const year = yearPart < 100 ? 2000 + yearPart : yearPart;
-          date = new Date(year, month - 1, day, hours, minutes);
-          sender = androidMatch[3];
-          content = androidMatch[4];
-        } else {
-          const iosMatch = cleanLine.match(IOS_MESSAGE_REGEX);
-          if (iosMatch) {
-            const [day, month, yearPart] = iosMatch[1].split('/').map(Number);
-            let [hours, minutes] = iosMatch[2].split(':').map(Number);
-            const year = yearPart < 100 ? 2000 + yearPart : yearPart;
-            
-            if (iosMatch[3]) {
-              const isPM = iosMatch[3].toUpperCase() === 'PM';
-              if (isPM && hours < 12) hours += 12;
-              if (!isPM && hours === 12) hours = 0;
+        if (match) {
+          // It's a new message (or system message)
+          const dateStr = match[1];
+          const timeStr = match[2];
+          const remainder = line.substring(match[0].length);
+
+          const date = parseDate(dateStr, timeStr, dateFormat);
+
+          if (date) {
+            // Check for Sender
+            // Looking for first colon after the timestamp
+            // Standard: "Sender: Message"
+            const firstColonIndex = remainder.indexOf(':');
+
+            if (firstColonIndex !== -1) {
+              // Found a sender
+              const sender = remainder.substring(0, firstColonIndex).trim();
+              const content = remainder.substring(firstColonIndex + 1).trim();
+
+              // Filter out system messages that might accidentally have colons but are known system senders?
+              // WhatsApp usually doesn't have system messages with colons like "Messages ... : ..."
+              // But we can filter standard "end-to-end encrypted" messages if they appear as sender? Unlikely.
+              
+              const newMessage: Message = { date, sender, content };
+              messages.push(newMessage);
+              lastMessage = newMessage;
+            } else {
+              // No colon -> System Message (e.g. "You changed the subject", "Security code changed")
+              // We skip these for stats, but we DO NOT append to previous message.
+              // It breaks the previous message chain.
+              lastMessage = null;
             }
-            date = new Date(year, month - 1, day, hours, minutes);
-            sender = iosMatch[4];
-            content = iosMatch[5];
+          }
+        } else {
+          // No timestamp -> Multiline message
+          // Append to last valid message
+          if (lastMessage) {
+            lastMessage.content += `\n${line}`;
           }
         }
-
-        if (date && sender && content) {
-          if (content.includes('end-to-end encrypted') || sender === 'WhatsApp') continue;
-          const newMessage: Message = { date, sender, content };
-          messages.push(newMessage);
-          lastMessage = newMessage;
-        } else if (lastMessage && !ANDROID_SYSTEM_REGEX.test(cleanLine) && !IOS_SYSTEM_REGEX.test(cleanLine)) {
-          lastMessage.content += `\n${cleanLine}`;
-        }
       }
+
       resolve({ messages, status: 'success' });
     };
+
     reader.onerror = () => resolve({ messages: [], status: 'error', error: 'Failed to read file' });
     reader.readAsText(file);
   });
@@ -134,7 +246,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     byeCount: number;
     textOnlyCount: number;
     emojiMsgCount: number;
-    mediaMessageCount: number; // New metric
+    mediaMessageCount: number; 
     shortMessageCount: number;
     longMessageCount: number;
     oneSidedCount: number;
@@ -162,10 +274,10 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
 
   let longestMsg = { content: '', sender: '', date: new Date(0), wordCount: 0 };
 
-  // Helpers
-  const GM_REGEX = /\b(gm|good\s*morn|morning|mrng)\b/i;
-  const GN_REGEX = /\b(gn|good\s*night|night|nite)\b/i;
-  const BYE_REGEX = /\b(bye|byee|tata|cya|see\s*ya)\b/i;
+  // Helpers (Heuristics for common languages, simplified)
+  const GM_REGEX = /\b(gm|good\s*morn|morning|mrng|bonjour|buenos\s*dias|guten\s*morgen)\b/i;
+  const GN_REGEX = /\b(gn|good\s*night|night|nite|bonne\s*nuit|buenas\s*noches|gute\s*nacht)\b/i;
+  const BYE_REGEX = /\b(bye|byee|tata|cya|see\s*ya|au\s*revoir|adios|tschuss)\b/i;
 
   filteredMessages.forEach((msg, index) => {
     // Initialize User
@@ -184,15 +296,19 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
     uStat.count++;
     
     // Check for Media
-    const contentLower = msg.content.toLowerCase();
-    const isMedia = MEDIA_PHRASES.some(phrase => contentLower.includes(phrase));
+    // International Rule: ANY line wrapped in < > is media/system
+    const contentTrimmed = msg.content.trim();
+    const isAngleBracketMedia = /^<.+>$/.test(contentTrimmed);
+    const isStandardMedia = MEDIA_PHRASES_BASE.some(phrase => contentTrimmed.toLowerCase().includes(phrase));
+    const isMedia = isAngleBracketMedia || isStandardMedia;
 
     if (isMedia) {
       uStat.mediaMessageCount++;
-      // Skip word/phrase/length analysis for media
+      // Skip word analysis for media
     } else {
       // Regular Text Analysis
-      const tokens = msg.content.trim().split(/\s+/);
+      // Split by whitespace (basic unicode support)
+      const tokens = msg.content.trim().split(/\s+/).filter(t => t.length > 0);
       const wordCount = tokens.length;
       uStat.words += wordCount;
 
@@ -214,19 +330,24 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
         uStat.textOnlyCount++;
       }
 
-      // Word & Phrase Analysis (Safety Check: must have words, not just emojis)
-      const cleanContent = msg.content.toLowerCase().replace(/[^\w\s']/g, ''); // keep apostrophes
+      // Word & Phrase Analysis
+      // Filter out emojis and punctuation for word cloud
+      // Using Unicode property escapes for letters/numbers might be safer but support varies.
+      // We'll stick to basic cleanup: remove common punctuation.
+      const cleanContent = msg.content.toLowerCase().replace(/[^\p{L}\p{N}\s']/gu, ''); 
       const words = cleanContent.split(/\s+/).filter(w => w.length > 0);
       
-      // Only analyze words if it's not an emoji-only message (heuristic: has words > 0)
       if (words.length > 0) {
         // Words
         words.forEach(w => {
-          const cleanW = w.replace(/[']/g, '');
-          if (cleanW.length > 2 && !STOP_WORDS.has(cleanW)) {
-            uStat.wordFreq.set(cleanW, (uStat.wordFreq.get(cleanW) || 0) + 1);
-            if (!wordGlobalMap[cleanW]) wordGlobalMap[cleanW] = {};
-            wordGlobalMap[cleanW][msg.sender] = (wordGlobalMap[cleanW][msg.sender] || 0) + 1;
+          // Simple length check to avoid single chars unless CJK?
+          // For now, length > 1 or CJK char
+          // Fix: \p{Han} can cause "Invalid property name" in some environments. 
+          // Using standard CJK Unicode range instead: \u4E00-\u9FFF (CJK Unified Ideographs)
+          if ((w.length > 2 || /[\u4E00-\u9FFF]/.test(w)) && !STOP_WORDS.has(w)) {
+            uStat.wordFreq.set(w, (uStat.wordFreq.get(w) || 0) + 1);
+            if (!wordGlobalMap[w]) wordGlobalMap[w] = {};
+            wordGlobalMap[w][msg.sender] = (wordGlobalMap[w][msg.sender] || 0) + 1;
           }
         });
 
@@ -234,7 +355,6 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
         for (let i = 0; i < words.length - 1; i++) {
             const w1 = words[i];
             const w2 = words[i+1];
-            // At least one word must NOT be a stop word to be interesting
             if (!STOP_WORDS.has(w1) || !STOP_WORDS.has(w2)) {
                 const phrase = `${w1} ${w2}`;
                 if (!phraseMap.has(phrase)) {
@@ -312,7 +432,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
   // Calculate One-Sided Days
   dailyBreakdown.forEach((userCounts, _date) => {
     const totalDay = Array.from(userCounts.values()).reduce((a, b) => a + b, 0);
-    if (totalDay > 10) { // Threshold for significance
+    if (totalDay > 10) { 
       userCounts.forEach((count, user) => {
         if ((count / totalDay) > 0.75) {
           if (userMap.has(user)) {
@@ -327,7 +447,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
   let topPhrase = null;
   let maxPhraseCount = 0;
   phraseMap.forEach((data, phrase) => {
-      if (data.count > maxPhraseCount && data.count > 3) { // Threshold
+      if (data.count > maxPhraseCount && data.count > 3) {
           let topUser = '';
           let maxUserCount = 0;
           data.users.forEach((c, u) => { if(c > maxUserCount) { maxUserCount = c; topUser = u; }});
@@ -336,7 +456,6 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
           topPhrase = { phrase, count: data.count, topUser };
       }
   });
-
 
   // Calculate Maxima
   let maxDaily = 0;
@@ -369,7 +488,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
       name,
       messageCount: stats.count,
       wordCount: stats.words,
-      avgLength: stats.words > 0 ? Math.round(stats.words / (stats.count - stats.mediaMessageCount)) : 0, // Adjusted to exclude media msgs from denom if preferred, but usually avgLength = words / total
+      avgLength: stats.words > 0 ? Math.round(stats.words / (stats.count - stats.mediaMessageCount)) : 0, 
       emojis: sortedEmojis,
       color: COLORS[index % COLORS.length],
       topWords: sortedWords,
