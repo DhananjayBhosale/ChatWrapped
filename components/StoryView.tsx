@@ -4,8 +4,8 @@ import WordSearch from './WordSearch';
 import HourlyHeatmap from './charts/HourlyHeatmap';
 import { 
   MessageCircle, Search, Zap, Moon, Sun, Image,
-  Flame, BarChart3, Activity,
-  Quote, Mic, Users
+  Flame, BarChart3,
+  Quote, Mic
 } from 'lucide-react';
 
 interface StoryViewProps {
