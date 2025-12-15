@@ -143,17 +143,24 @@ const FloatingParticles: React.FC = () => {
 
 const BackgroundEmojis: React.FC<{ emojis: string[] }> = ({ emojis }) => {
   const reduced = useReducedMotion();
+  
+  // Create a stable key based on the content of emojis so we don't re-render on reference change
+  const emojiKey = useMemo(() => emojis ? emojis.join(',') : '', [emojis]);
+
   if (reduced || !emojis || emojis.length === 0) return null;
 
   // Static set of drops
-  const drops = useMemo(() => Array.from({ length: 12 }).map((_, i) => ({
-    left: `${Math.floor(Math.random() * 90) + 5}%`,
-    delay: `${Math.random() * 20}s`, // Long delay for staggering
-    duration: `${15 + Math.random() * 10}s`, // 15-25s slow fall
+  const drops = useMemo(() => Array.from({ length: 18 }).map((_, i) => ({
+    left: `${Math.floor(Math.random() * 95) + 2}%`,
+    // Large negative delay ensures they are distributed vertically across the screen immediately
+    // Range: -20s to 0s
+    delay: `${(Math.random() * 20) - 20}s`, 
+    // Slower duration: 12s to 24s (previously 6-12s)
+    duration: `${12 + Math.random() * 12}s`,
     emoji: emojis[i % emojis.length],
-    fontSize: `${3 + Math.random() * 3}rem`, // varied sizes 3rem - 6rem
-    blur: Math.random() > 0.4 ? '3px' : '1px'
-  })), [emojis]);
+    fontSize: `${2 + Math.random() * 3}rem`, 
+    blur: Math.random() > 0.4 ? '2px' : '0px'
+  })), [emojiKey]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -166,7 +173,7 @@ const BackgroundEmojis: React.FC<{ emojis: string[] }> = ({ emojis }) => {
             animationDelay: d.delay,
             animationDuration: d.duration,
             fontSize: d.fontSize,
-            filter: `blur(${d.blur}) grayscale(0.5)`, // Subtle appearance
+            filter: `blur(${d.blur}) grayscale(0.2)`, 
           }}
         >
           {d.emoji}
@@ -433,11 +440,27 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
 
   const getBackgroundEmojis = (type: SlideType): string[] => {
     switch (type) {
+      case 'INTRO': return ['👋'];
       case 'TOTAL': return ['💬'];
+      case 'GROUP_LEADERBOARD': return ['👥', '🏆'];
       case 'STREAKS': return ['🔥'];
+      case 'SILENCE_DURATION': return ['😴', '💤'];
+      case 'SILENCE_LEADERBOARD': return ['📢'];
+      case 'ACTIVE_GRAPH': return ['📊'];
+      case 'PEAK_HOUR': return ['⏰', '🕰️'];
+      case 'WEEKLY': return ['📅'];
+      case 'MEDIA': return ['📸', '🎥'];
       case 'RAPID_FIRE': return ['⚡'];
-      case 'SILENCE_BREAKER': return ['🤫'];
-      case 'SILENCE_DURATION': return ['😴'];
+      case 'VOLUME': return ['🔊'];
+      case 'ONE_SIDED': return ['🎒'];
+      case 'ESSAYIST': return ['📝', '📜'];
+      case 'BALANCE': return ['⚖️'];
+      case 'VOCAB': return ['🔤', '🗣️'];
+      case 'REPEAT': return ['🔁'];
+      case 'SILENCE_BREAKER': return ['🎤'];
+      case 'SPEED': return ['🏎️', '💨'];
+      case 'STYLES': return ['✍️'];
+      case 'FINAL': return ['🧾', '👋'];
       default: return [];
     }
   };
@@ -1069,6 +1092,17 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
                <div className="flex justify-center gap-6 mt-4">
                  {canCompare && <button onClick={onCompare} className="text-zinc-400 text-xs font-bold hover:text-white uppercase tracking-wider">Compare Years</button>}
                  <button onClick={onReset} className="text-zinc-400 text-xs font-bold hover:text-white uppercase tracking-wider">Start Over</button>
+               </div>
+
+               <div className="mt-6 text-center">
+                 <a 
+                   href="https://dhananjaytech.app" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="text-[10px] text-zinc-500 hover:text-white transition-colors uppercase tracking-widest font-bold border-b border-zinc-800 pb-1"
+                 >
+                   Check more websites by Dhananjay_Tech
+                 </a>
                </div>
             </div>
           </div>
