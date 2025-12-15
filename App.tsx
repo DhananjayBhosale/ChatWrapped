@@ -182,6 +182,14 @@ function App() {
               <p className="text-zinc-400 text-lg md:text-xl">
                 This is your "ChatWrapped 😎"
               </p>
+              <a 
+                href="https://www.instagram.com/dhananjay_tech/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block mt-3 text-xs md:text-sm text-zinc-600 hover:text-purple-400 transition-colors font-medium tracking-wide uppercase"
+              >
+                Vibecoded by Dhananjay_Tech
+              </a>
             </div>
             
             {/* 3. Upload Zone (High Priority) */}
