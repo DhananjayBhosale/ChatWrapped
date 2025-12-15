@@ -17,7 +17,7 @@ interface StoryViewProps {
 }
 
 type SlideType = 
-  | 'INTRO' | 'TOTAL' | 'GROUP_LEADERBOARD' | 'MOST_SILENT' | 'STREAKS' | 'SILENCE_DURATION' | 'SILENCE_LEADERBOARD' | 'ACTIVE_GRAPH'
+  | 'INTRO' | 'TOTAL' | 'TOP_TALKERS' | 'GROUP_LEADERBOARD' | 'MOST_SILENT' | 'STREAKS' | 'SILENCE_DURATION' | 'SILENCE_LEADERBOARD' | 'ACTIVE_GRAPH'
   | 'PEAK_HOUR' | 'WEEKLY' | 'MEDIA' | 'RAPID_FIRE' | 'VOLUME'
   | 'ONE_SIDED' | 'ESSAYIST' | 'BALANCE' | 'VOCAB' | 'REPEAT'
   | 'SILENCE_BREAKER' | 'SPEED' | 'STYLES' | 'FINAL';
@@ -366,6 +366,7 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
   const slides: SlideType[] = useMemo(() => {
     const list: SlideType[] = ['INTRO', 'TOTAL'];
     if (data.users.length > 2) {
+      list.push('TOP_TALKERS');
       list.push('GROUP_LEADERBOARD');
       
       // MOST SILENT AWARD Logic
@@ -444,6 +445,7 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
     switch (type) {
       case 'INTRO': return 'purple';
       case 'TOTAL': return 'purple';
+      case 'TOP_TALKERS': return 'blue';
       case 'GROUP_LEADERBOARD': return 'purple';
       case 'MOST_SILENT': return 'dark';
       case 'STREAKS': return 'orange';
@@ -480,6 +482,7 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
     switch (type) {
       case 'INTRO': return ['👋'];
       case 'TOTAL': return ['💬'];
+      case 'TOP_TALKERS': return ['🗣️'];
       case 'GROUP_LEADERBOARD': return ['👥', '🏆'];
       case 'MOST_SILENT': return ['🤫'];
       case 'STREAKS': return ['🔥'];
@@ -554,6 +557,51 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
               <p className="text-lg italic text-zinc-200">"That's a whole lot of typing."</p>
             </div>
           </SlideWrapper>
+        );
+
+      case 'TOP_TALKERS':
+        const activeTalkers = data.users.filter(u => u.messageCount > 0)
+                                        .sort((a, b) => b.messageCount - a.messageCount);
+        const topTalkersList = activeTalkers.slice(0, 15);
+        const talkersHiddenCount = activeTalkers.length - topTalkersList.length;
+        
+        return (
+            <SlideWrapper>
+                <div className="mb-6 text-center animate-fadeSlideUp">
+                    <h2 className="text-2xl font-black text-white mb-1">Top Talkers 🗣️</h2>
+                    <p className="text-xs text-zinc-400 font-medium uppercase tracking-widest">The most active people</p>
+                </div>
+                
+                <div className="flex flex-col gap-1.5 w-full">
+                    {topTalkersList.map((u, i) => (
+                        <div 
+                            key={u.name} 
+                            className="flex items-center justify-between animate-fadeSlideRight opacity-0 fill-mode-forwards"
+                            style={{ animationDelay: `${i * 40}ms` }}
+                        >
+                             <div className="flex items-center gap-3 min-w-0">
+                                 <span className={`text-xs font-mono w-5 text-right ${i < 3 ? 'text-yellow-400 font-bold' : 'text-zinc-600'}`}>
+                                     {i + 1}
+                                 </span>
+                                 <span className={`text-sm truncate max-w-[180px] sm:max-w-[240px] ${i < 3 ? 'text-white font-bold' : 'text-zinc-300'}`}>
+                                     {u.name}
+                                 </span>
+                             </div>
+                             <span className="text-xs font-mono text-zinc-500 shrink-0">
+                                 {formatNum(u.messageCount)}
+                             </span>
+                        </div>
+                    ))}
+                </div>
+    
+                {talkersHiddenCount > 0 && (
+                    <div className="mt-8 text-center animate-fadeIn opacity-0 fill-mode-forwards" style={{ animationDelay: '800ms' }}>
+                        <p className="text-[10px] text-zinc-600 font-medium">
+                           Others were active too, but these 15 led the chat.
+                        </p>
+                    </div>
+                )}
+            </SlideWrapper>
         );
 
       case 'GROUP_LEADERBOARD':
