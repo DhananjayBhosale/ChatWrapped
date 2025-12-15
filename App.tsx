@@ -179,7 +179,7 @@ function App() {
                 <span className="ml-2">👀</span>
               </h1>
               <p className="text-zinc-400 text-lg md:text-xl">
-                This is your "WhatsApp Wrapped 😎"
+                This is your "ChatWrapped 😎"
               </p>
             </div>
             

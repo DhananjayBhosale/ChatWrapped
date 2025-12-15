@@ -1,5 +1,5 @@
 {
-  "name": "ChatWrapped - WhatsApp Analyzer",
-  "description": "A privacy-focused, client-side WhatsApp chat analyzer that generates a Spotify Wrapped-style infographic of your conversation history.",
+  "name": "ChatWrapped - Chat Analyzer",
+  "description": "A privacy-focused, client-side chat analyzer that generates a Spotify Wrapped-style infographic of your conversation history.",
   "requestFramePermissions": []
 }

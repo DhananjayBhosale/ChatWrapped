@@ -398,7 +398,7 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
 
   const getTheme = (type: SlideType): string => {
     switch (type) {
-      case 'INTRO': return 'green';
+      case 'INTRO': return 'purple';
       case 'TOTAL': return 'purple';
       case 'GROUP_LEADERBOARD': return 'purple';
       case 'STREAKS': return 'orange';
@@ -450,13 +450,14 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
       case 'INTRO':
         return (
           <SlideWrapper className="text-center">
-            <div className="w-24 h-24 bg-gradient-to-tr from-green-500 to-emerald-600 rounded-[2.5rem] flex items-center justify-center mb-8 mx-auto shadow-[0_0_60px_rgba(16,185,129,0.4)] animate-fadeSlideUp">
+            {/* BRANDING: Replaced Green (WhatsApp) with Violet/Fuchsia (ChatWrapped) */}
+            <div className="w-24 h-24 bg-gradient-to-tr from-violet-600 to-fuchsia-600 rounded-[2.5rem] flex items-center justify-center mb-8 mx-auto shadow-[0_0_60px_rgba(139,92,246,0.4)] animate-fadeSlideUp">
               <MessageCircle size={48} className="text-white drop-shadow-md" />
             </div>
             <RevealText className="mb-6" delay="100ms">
               <h1 className="text-5xl font-black tracking-tighter text-white">
-                WhatsApp Wrapped<br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-200">
+                ChatWrapped<br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-fuchsia-200">
                   {selectedYear || "All Time"}
                 </span>
               </h1>
