@@ -16,6 +16,7 @@ function App() {
   const [viewState, setViewState] = useState<'upload' | 'story' | 'compare'>('upload');
 
   const handleFileUpload = async (file: File) => {
+    setViewState('upload'); // Ensure loading screen is visible
     setIsLoading(true);
     setLoadingText("Processing file...");
     
@@ -247,6 +248,7 @@ function App() {
           onReset={handleReset}
           onCompare={() => setViewState('compare')}
           canCompare={canCompare}
+          onFileSelect={handleFileUpload}
         />
       )}
 
