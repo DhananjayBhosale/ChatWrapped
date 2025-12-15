@@ -257,6 +257,7 @@ function App() {
           onCompare={() => setViewState('compare')}
           canCompare={canCompare}
           onFileSelect={handleFileUpload}
+          onSelectYear={setSelectedYear}
         />
       )}
 

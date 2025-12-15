@@ -5,7 +5,7 @@ import HourlyHeatmap from './charts/HourlyHeatmap';
 import { 
   MessageCircle, Search, Zap, Moon, Sun, Image,
   Flame, BarChart3,
-  Quote, Mic
+  Quote, Mic, X
 } from 'lucide-react';
 
 interface StoryViewProps {
@@ -15,6 +15,7 @@ interface StoryViewProps {
   onCompare: () => void;
   canCompare: boolean;
   onFileSelect: (file: File) => void;
+  onSelectYear: (year: number) => void;
 }
 
 type SlideType = 
@@ -249,7 +250,7 @@ const ActionCard: React.FC<{ title: string; icon: string; onClick: () => void; d
   <button 
     onClick={onClick}
     disabled={disabled}
-    className={`w-full p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between group
+    className={`w-full p-6 rounded-2xl border transition-all duration-300 flex items-center justify-between group cursor-pointer pointer-events-auto
       ${disabled 
         ? 'bg-zinc-900/50 border-zinc-800 opacity-50 cursor-not-allowed' 
         : 'bg-zinc-900/80 border-zinc-700 hover:bg-zinc-800 hover:border-zinc-500 hover:scale-[1.02] active:scale-95 shadow-lg'
@@ -364,17 +365,35 @@ const SlideWrapper: React.FC<{ children?: React.ReactNode; className?: string }>
 
 // --- MAIN COMPONENT ---
 
-const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCompare, canCompare, onFileSelect }) => {
+const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCompare, canCompare, onFileSelect, onSelectYear }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [animKey, setAnimKey] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [animateSlide, setAnimateSlide] = useState(false);
+  
+  // Year Selection State
+  const [showYearSelector, setShowYearSelector] = useState(false);
+  const [showNoYearsToast, setShowNoYearsToast] = useState(false);
 
   useEffect(() => {
     setAnimateSlide(false);
     const t = setTimeout(() => setAnimateSlide(true), 50);
     return () => clearTimeout(t);
   }, [currentSlideIndex]);
+
+  // Reset slide index when selected year changes
+  useEffect(() => {
+    setCurrentSlideIndex(0);
+    setAnimKey(prev => prev + 1);
+  }, [selectedYear]);
+
+  // Auto-hide toast
+  useEffect(() => {
+    if (showNoYearsToast) {
+      const t = setTimeout(() => setShowNoYearsToast(false), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [showNoYearsToast]);
 
   // Derive Chat Title
   const chatTitle = useMemo(() => {
@@ -460,6 +479,17 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
     } else if (direction === 'prev' && currentSlideIndex > 0) {
       setCurrentSlideIndex(c => c - 1);
       setAnimKey(k => k + 1);
+    }
+  };
+
+  const handleCheckAnotherYear = () => {
+    // Check if there are years other than the selected one
+    const otherYears = data.yearOptions.filter(y => y !== selectedYear);
+    
+    if (otherYears.length > 0) {
+      setShowYearSelector(true);
+    } else {
+      setShowNoYearsToast(true);
     }
   };
 
@@ -1187,7 +1217,10 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
 
       case 'FINAL':
         return (
-          <div className="flex flex-col h-full pt-6 pb-16 px-6 overflow-y-auto scrollbar-hide pointer-events-auto relative z-10">
+          <div 
+            className="flex flex-col h-full pt-6 pb-16 px-6 overflow-y-auto scrollbar-hide pointer-events-auto relative z-10"
+            onClick={() => handleSlideChange('next')}
+          >
             <h2 className="text-center text-lg font-bold mb-6 animate-fadeSlideUp text-zinc-400">The Receipt 🧾</h2>
             <div className="bg-zinc-950 border border-zinc-800 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden animate-fadeSlideUp opacity-0 fill-mode-forwards mx-auto w-full max-w-sm" style={{ animationDelay: '100ms' }}>
                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-600/20 rounded-full blur-[80px]" />
@@ -1228,22 +1261,13 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
             
             <MicroExplanation text="Your complete chat summary." delay="600ms" />
 
-            <div className="mt-8 flex flex-col gap-3 max-w-sm mx-auto w-full animate-fadeSlideUp opacity-0 fill-mode-forwards relative z-50" style={{ animationDelay: '700ms' }}>
-               <button onClick={() => setShowSearch(true)} className="bg-zinc-800 text-white py-4 rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg">
+            <div className="mt-8 flex flex-col gap-3 max-w-sm mx-auto w-full animate-fadeSlideUp opacity-0 fill-mode-forwards relative z-50 cursor-pointer" style={{ animationDelay: '700ms' }}>
+               <button 
+                 onClick={(e) => { e.stopPropagation(); setShowSearch(true); }} 
+                 className="bg-zinc-800 text-white py-4 rounded-full font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
+               >
                  <Search size={20} /> Text Search
                </button>
-
-               <div className="mt-6 text-center">
-                 <a 
-                   href="https://dhananjaytech.app" 
-                   target="_blank" 
-                   rel="noopener noreferrer"
-                   className="text-[10px] text-zinc-500 hover:text-white transition-colors uppercase tracking-widest font-bold border-b border-zinc-800 pb-1"
-                 >
-                   Check more websites by Dhananjay_Tech
-                 </a>
-               </div>
-               
                <p className="text-center text-xs text-zinc-500 mt-4 animate-pulse">Tap for next ➜</p>
             </div>
           </div>
@@ -1254,15 +1278,17 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
           <SlideWrapper className="justify-center">
             <h2 className="text-3xl font-black text-center mb-12 animate-fadeSlideUp">What do you want to do next?</h2>
             
-            <div className="space-y-4 w-full max-w-sm mx-auto animate-fadeSlideUp opacity-0 fill-mode-forwards" style={{ animationDelay: '200ms' }}>
+            <div className="space-y-4 w-full max-w-sm mx-auto animate-fadeSlideUp opacity-0 fill-mode-forwards pointer-events-auto" style={{ animationDelay: '200ms' }}>
                
                {/* Option 1: Check another year */}
                <ActionCard 
                  title="Check another year" 
                  icon="📅" 
-                 onClick={() => document.getElementById('new-file-upload')?.click()}
-                 hint="Upload a different chat file"
+                 onClick={handleCheckAnotherYear}
+                 hint="View stats for a different year"
                />
+               
+               {/* Hidden file input not needed for this action anymore, but kept if we want to restore upload */}
                <input 
                  type="file" 
                  id="new-file-upload" 
@@ -1291,6 +1317,21 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
                  onClick={onReset}
                  hint="Clear data and exit"
                />
+
+               {/* Footer Links */}
+               <div className="pt-12 text-center space-y-4 animate-fadeSlideUp opacity-0 fill-mode-forwards" style={{ animationDelay: '400ms' }}>
+                 <a 
+                   href="https://dhananjaytech.app" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="inline-block text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors border-b border-zinc-800 pb-1"
+                 >
+                   Check more websites by Dhananjay_Tech
+                 </a>
+                 <div className="text-[10px] text-zinc-600 font-medium">
+                   Made by <a href="https://dhananjaytech.app" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white transition-colors">Dhananjay_Tech</a>
+                 </div>
+               </div>
         
             </div>
           </SlideWrapper>
@@ -1305,6 +1346,35 @@ const StoryView: React.FC<StoryViewProps> = ({ data, selectedYear, onReset, onCo
       <LivingBackground theme={getTheme(currentSlideType)} mode={getAmbientMode(currentSlideType)} emojis={getBackgroundEmojis(currentSlideType)} />
       
       {showSearch && <WordSearch data={data} onClose={() => setShowSearch(false)} />}
+      
+      {showYearSelector && (
+         <div className="absolute inset-0 z-[60] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-fadeIn">
+            <button onClick={() => setShowYearSelector(false)} className="absolute top-6 right-6 text-zinc-400 hover:text-white">
+               <X size={28} />
+            </button>
+            <h2 className="text-3xl font-black mb-8 text-center text-white">Select a Year</h2>
+            <div className="flex flex-wrap justify-center gap-4 max-w-md w-full">
+               {data.yearOptions.filter(y => y !== selectedYear).map(year => (
+                  <button
+                    key={year}
+                    onClick={() => { onSelectYear(year); setShowYearSelector(false); }}
+                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-zinc-800 border border-zinc-700 hover:bg-white hover:text-black hover:scale-105 transition-all font-bold text-xl"
+                  >
+                    {year}
+                  </button>
+               ))}
+               {data.yearOptions.filter(y => y !== selectedYear).length === 0 && (
+                  <p className="text-zinc-500">No other years available.</p>
+               )}
+            </div>
+         </div>
+      )}
+
+      {showNoYearsToast && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-800 text-white px-6 py-3 rounded-full shadow-xl animate-fadeIn z-[70] pointer-events-none border border-zinc-700">
+           No other years found in this file
+        </div>
+      )}
 
       <div className="absolute top-0 left-0 right-0 z-50 flex flex-col px-2 pt-2 safe-top">
         <div className="flex gap-1 h-1 mb-3">
