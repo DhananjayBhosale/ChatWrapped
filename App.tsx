@@ -171,24 +171,27 @@ function App() {
                </div>
             </div>
             
-            {/* 2. Headline */}
+            {/* 2. Headline - BRANDING UPDATE */}
             <div className="text-center mb-8 max-w-2xl px-6 animate-fadeIn delay-100">
-              <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-4 leading-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
-                  So… you talked a lot
-                </span>
-                <span className="ml-2">👀</span>
+              <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-4 leading-none">
+                 <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-400">
+                  ChatWrapped
+                 </span>
               </h1>
-              <p className="text-zinc-400 text-lg md:text-xl">
-                This is your "ChatWrapped 😎"
+              <p className="text-xl md:text-2xl text-white font-bold mb-2">
+                 Your Chats, Turned Into Stories 💬
               </p>
+              <p className="text-zinc-400 text-sm md:text-base max-w-lg mx-auto leading-relaxed">
+                The privacy-first chat analyzer. Discover your top friends, busiest hours, and ghost stats in a Spotify Wrapped-style story.
+              </p>
+              
               <a 
                 href="https://www.instagram.com/dhananjay_tech/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="block mt-3 text-xs md:text-sm text-zinc-600 hover:text-purple-400 transition-colors font-medium tracking-wide uppercase"
+                className="block mt-6 text-xs text-zinc-600 hover:text-purple-400 transition-colors font-medium tracking-wide uppercase"
               >
-                Vibecoded by Dhananjay_Tech
+                Made by Dhananjay_Tech
               </a>
             </div>
             

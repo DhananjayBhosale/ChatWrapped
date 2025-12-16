@@ -2,29 +2,61 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     
-    <!-- Open Graph / Social Media Meta Tags -->
-    <title>ChatWrapped – Your Chats, Turned Into Stories 💬</title>
-    <meta name="description" content="Turn your chat history into a fun, interactive story! See your top friends, busiest hours, and ghost mode stats. Runs 100% offline in your browser. 🔒✨">
+    <!-- BRANDING & SEO -->
+    <title>ChatWrapped - The Spotify Wrapped for Your Chats 💬</title>
+    <meta name="description" content="ChatWrapped turns your WhatsApp and chat history into a fun, interactive story. Discover your top friends, busiest hours, and ghost stats. 100% Offline & Private.">
+    <link rel="canonical" href="https://chatwrapped.dhananjaytech.app/" />
+    <meta name="author" content="Dhananjay_Tech">
+    <meta name="keywords" content="WhatsApp Wrapped, Chat Analyzer, Chat Statistics, WhatsApp Story, Offline Chat Tool, ChatWrapped">
+
+    <!-- FAVICONS & ICONS -->
+    <!-- Using a high-fidelity SVG for immediate branding without external hosting dependencies -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%238b5cf6'/%3E%3Cpath d='M25 35 Q25 20 50 20 Q75 20 75 35 V55 Q75 70 50 70 L25 85 V70 Q25 70 25 55 Z' fill='white'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='30' font-weight='bold' text-anchor='middle' fill='%238b5cf6'%3E%25%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="https://chatwrapped.dhananjaytech.app/logo.png">
     
-    <!-- Facebook / WhatsApp / Telegram -->
+    <!-- OPEN GRAPH / SOCIAL (Facebook, WhatsApp, LinkedIn) -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="ChatWrapped – Your Chats, Turned Into Stories 💬">
-    <meta property="og:description" content="Turn your chat history into a fun, interactive story! See your top friends, busiest hours, and ghost mode stats. Runs 100% offline in your browser. 🔒✨">
+    <meta property="og:site_name" content="ChatWrapped">
+    <meta property="og:url" content="https://chatwrapped.dhananjaytech.app/">
+    <meta property="og:title" content="ChatWrapped - Your Chats, Turned Into Stories 💬">
+    <meta property="og:description" content="The privacy-first chat analyzer. Turn your chat history into a fun, interactive story! See top friends, busy hours, and streaks. 100% Offline.">
     <meta property="og:image" content="https://chatwrapped.dhananjaytech.app/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/png">
-    <meta property="og:url" content="https://chatwrapped.dhananjaytech.app/">
-    <meta property="og:site_name" content="ChatWrapped">
 
-    <!-- Twitter -->
+    <!-- TWITTER CARD -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ChatWrapped – Your Chats, Turned Into Stories 💬">
-    <meta name="twitter:description" content="Turn your chat history into a fun, interactive story! See your top friends, busiest hours, and ghost mode stats. Runs 100% offline in your browser. 🔒✨">
+    <meta name="twitter:title" content="ChatWrapped - Your Chats, Turned Into Stories 💬">
+    <meta name="twitter:description" content="Discover your chat personality. 100% Offline & Private. No uploads.">
     <meta name="twitter:image" content="https://chatwrapped.dhananjaytech.app/og-image.png">
+
+    <!-- STRUCTURED DATA (JSON-LD) for Google Rich Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "ChatWrapped",
+      "url": "https://chatwrapped.dhananjaytech.app",
+      "logo": "https://chatwrapped.dhananjaytech.app/logo.png",
+      "description": "ChatWrapped is a privacy-focused web application that analyzes WhatsApp chat exports to generate 'Spotify Wrapped' style infographic stories. It runs entirely in the browser without uploading data.",
+      "applicationCategory": "WebApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Dhananjay",
+        "url": "https://www.instagram.com/dhananjay_tech/"
+      },
+      "featureList": "Offline processing, Privacy-first, Interactive Story Mode, Chat Statistics"
+    }
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
@@ -198,15 +230,15 @@
   <script type="importmap">
 {
   "imports": {
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
-    "recharts": "https://esm.sh/recharts@^3.5.1",
-    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
-    "jszip": "https://esm.sh/jszip@^3.10.1",
-    "vite": "https://esm.sh/vite@^7.2.7",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "vite": "https://esm.sh/vite@^7.3.0",
+    "jszip": "https://esm.sh/jszip@^3.10.1"
   }
 }
 </script>
