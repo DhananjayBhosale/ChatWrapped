@@ -15,10 +15,25 @@ const WordSearch: React.FC<WordSearchProps> = ({ data, onClose }) => {
     e.preventDefault();
     if (!query.trim()) return;
     
-    const searchWord = query.toLowerCase().trim();
-    // Simple direct match or basic stemming could go here
-    const found = data.wordOccurrences[searchWord];
-    setResult(found || {});
+    const searchText = query.toLowerCase().trim();
+    
+    // Optimization: If single word and exists in dictionary, use pre-computed index
+    if (!searchText.includes(' ') && data.wordOccurrences[searchText]) {
+       setResult(data.wordOccurrences[searchText]);
+       return;
+    }
+
+    // Fallback: Scan raw messages for phrases or words not in index (e.g. stop words, special chars)
+    const counts: Record<string, number> = {};
+    const messages = data.messages || []; // Fallback if interface not updated yet, though it should be
+
+    messages.forEach(msg => {
+       if (msg.content.toLowerCase().includes(searchText)) {
+         counts[msg.sender] = (counts[msg.sender] || 0) + 1;
+       }
+    });
+
+    setResult(counts);
   };
 
   const totalOccurrences = result ? (Object.values(result) as number[]).reduce((a, b) => a + b, 0) : 0;
@@ -42,7 +57,7 @@ const WordSearch: React.FC<WordSearchProps> = ({ data, onClose }) => {
              type="text" 
              value={query}
              onChange={(e) => setQuery(e.target.value)}
-             placeholder="Search any word (e.g., 'lol', 'love')..."
+             placeholder="Search any word or phrase..."
              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-full py-4 pl-6 pr-14 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
              autoFocus
            />

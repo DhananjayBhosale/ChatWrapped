@@ -49,6 +49,7 @@ export interface RapidFireStats {
 
 export interface AnalysisResult {
   totalMessages: number;
+  messages: Message[]; // Added for search functionality
   dateRange: { start: Date; end: Date };
   users: UserStat[];
   activeUsersCount: number;

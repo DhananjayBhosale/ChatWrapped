@@ -25,7 +25,7 @@ const EMOJI_REGEX = /\p{Emoji_Presentation}/gu;
 
 // Common Stop Words (English default, can be expanded but kept minimal for performance)
 const STOP_WORDS = new Set([
-  'the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us', 'is', 'are', 'was', 'were', 'has', 'had', 'been', 'ok', 'okay', 'lol', 'haha', 'haha', 'yeah', 'yes', 'hey', 'hi', 'hello', 'omg', 'did', 'done', 'too', 'very', 'much', 'really', 'got', 'don', 'dont', 'didnt', 'can', 'cant', 'cannot', 'pm', 'am', 'omitted'
+  'the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us', 'is', 'are', 'was', 'were', 'has', 'had', 'been', 'ok', 'okay', 'lol', 'haha', 'haha', 'haha', 'yeah', 'yes', 'hey', 'hi', 'hello', 'omg', 'did', 'done', 'too', 'very', 'much', 'really', 'got', 'don', 'dont', 'didnt', 'can', 'cant', 'cannot', 'pm', 'am', 'omitted'
 ]);
 
 // Basic Media Phrases (English/Generic) + Angle Bracket Check in Logic
@@ -212,6 +212,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
   if (filteredMessages.length === 0) {
     return {
       totalMessages: 0,
+      messages: [],
       dateRange: { start: new Date(), end: new Date() },
       users: [],
       activeUsersCount: 0,
@@ -524,6 +525,7 @@ export const analyzeMessages = (messages: Message[], yearFilter?: number): Analy
 
   return {
     totalMessages: filteredMessages.length,
+    messages: filteredMessages, // Pass messages reference for advanced search
     dateRange: { start: filteredMessages[0].date, end: filteredMessages[filteredMessages.length - 1].date },
     users,
     activeUsersCount: users.length,
