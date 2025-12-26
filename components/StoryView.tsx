@@ -40,15 +40,19 @@ const useReducedMotion = () => {
 
 const MessageRain: React.FC = () => {
   const reduced = useReducedMotion();
-  if (reduced) return null;
   
   // Use a fixed set of drops based on component mount to avoid rapid re-renders
-  const drops = useMemo(() => Array.from({ length: 12 }).map(() => ({
-    left: `${Math.floor(Math.random() * 90) + 5}%`,
-    delay: `${Math.random() * 5}s`,
-    duration: `${10 + Math.random() * 5}s`, // Slow speed (8-15s)
-    opacity: 0.04 + Math.random() * 0.04 // 4% to 8% opacity
-  })), []);
+  const drops = useMemo(() => {
+    if (reduced) return [];
+    return Array.from({ length: 12 }).map(() => ({
+      left: `${Math.floor(Math.random() * 90) + 5}%`,
+      delay: `${Math.random() * 5}s`,
+      duration: `${10 + Math.random() * 5}s`, // Slow speed (8-15s)
+      opacity: 0.04 + Math.random() * 0.04 // 4% to 8% opacity
+    }));
+  }, [reduced]);
+
+  if (reduced) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -73,14 +77,18 @@ const MessageRain: React.FC = () => {
 
 const HeatBurst: React.FC = () => {
   const reduced = useReducedMotion();
-  if (reduced) return null;
   
-  const particles = useMemo(() => Array.from({ length: 8 }).map(() => ({
-    left: `${20 + Math.random() * 60}%`,
-    delay: `${0.5 + Math.random() * 1.5}s`, // Starts after 500ms
-    duration: `${2 + Math.random()}s`,
-    size: `${Math.random() * 40 + 20}px`
-  })), []);
+  const particles = useMemo(() => {
+    if (reduced) return [];
+    return Array.from({ length: 8 }).map(() => ({
+      left: `${20 + Math.random() * 60}%`,
+      delay: `${0.5 + Math.random() * 1.5}s`, // Starts after 500ms
+      duration: `${2 + Math.random()}s`,
+      size: `${Math.random() * 40 + 20}px`
+    }));
+  }, [reduced]);
+
+  if (reduced) return null;
 
   return (
     <div className="absolute bottom-0 left-0 right-0 h-1/2 pointer-events-none overflow-hidden z-0">
@@ -114,14 +122,18 @@ const PulseWave: React.FC = () => {
 
 const FloatingParticles: React.FC = () => {
   const reduced = useReducedMotion();
-  if (reduced) return null;
   
-  const particles = useMemo(() => Array.from({ length: 6 }).map(() => ({
-    left: `${Math.random() * 80 + 10}%`,
-    top: `${Math.random() * 60 + 20}%`,
-    delay: `${Math.random() * 2}s`,
-    duration: `${6 + Math.random() * 4}s`,
-  })), []);
+  const particles = useMemo(() => {
+    if (reduced) return [];
+    return Array.from({ length: 6 }).map(() => ({
+      left: `${Math.random() * 80 + 10}%`,
+      top: `${Math.random() * 60 + 20}%`,
+      delay: `${Math.random() * 2}s`,
+      duration: `${6 + Math.random() * 4}s`,
+    }));
+  }, [reduced]);
+
+  if (reduced) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -148,21 +160,25 @@ const BackgroundEmojis: React.FC<{ emojis: string[] }> = ({ emojis }) => {
   
   // Create a stable key based on the content of emojis so we don't re-render on reference change
   const emojiKey = useMemo(() => emojis ? emojis.join(',') : '', [emojis]);
-
-  if (reduced || !emojis || emojis.length === 0) return null;
+  const safeEmojis = emojis || [];
 
   // Static set of drops
-  const drops = useMemo(() => Array.from({ length: 18 }).map((_, i) => ({
-    left: `${Math.floor(Math.random() * 95) + 2}%`,
-    // Large negative delay ensures they are distributed vertically across the screen immediately
-    // Range: -20s to 0s
-    delay: `${(Math.random() * 20) - 20}s`, 
-    // Slower duration: 12s to 24s (previously 6-12s)
-    duration: `${12 + Math.random() * 12}s`,
-    emoji: emojis[i % emojis.length],
-    fontSize: `${2 + Math.random() * 3}rem`, 
-    blur: Math.random() > 0.4 ? '2px' : '0px'
-  })), [emojiKey]);
+  const drops = useMemo(() => {
+    if (reduced || safeEmojis.length === 0) return [];
+    return Array.from({ length: 18 }).map((_, i) => ({
+      left: `${Math.floor(Math.random() * 95) + 2}%`,
+      // Large negative delay ensures they are distributed vertically across the screen immediately
+      // Range: -20s to 0s
+      delay: `${(Math.random() * 20) - 20}s`, 
+      // Slower duration: 12s to 24s (previously 6-12s)
+      duration: `${12 + Math.random() * 12}s`,
+      emoji: safeEmojis[i % safeEmojis.length],
+      fontSize: `${2 + Math.random() * 3}rem`, 
+      blur: Math.random() > 0.4 ? '2px' : '0px'
+    }));
+  }, [emojiKey, reduced, safeEmojis.length]);
+
+  if (reduced || safeEmojis.length === 0) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
